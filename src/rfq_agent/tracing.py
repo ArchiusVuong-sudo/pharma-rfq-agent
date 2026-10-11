@@ -44,7 +44,7 @@ class Tracer:
         except BaseException as exc:
             if span.status == "ok":  # keep a status the caller set, e.g. "waiting" on a graph interrupt
                 span.status = "error"
-            span.attrs.setdefault("error", f"{type(exc).__name__}: {exc}"[:300])
+                span.attrs.setdefault("error", f"{type(exc).__name__}: {exc}"[:300])
             raise
         finally:
             self.store.x(

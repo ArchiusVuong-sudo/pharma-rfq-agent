@@ -463,6 +463,7 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
             }
             review_id = store.open_review(run_id, rfq_id, line_id, payload)
             errors: list[str] = []
+            earlier_errors: list[str] = []
             while True:
                 answer = interrupt({"review_id": review_id, "line_id": line_id, "errors": errors})
                 action = answer.get("action")
@@ -497,9 +498,15 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
                                 review_id,
                             ),
                         )
-                        store.event(
-                            run_id, "review", f"Edited split rejected by the re-check: {'; '.join(errors)}", "warn"
-                        )
+                        message = f"Edited split rejected by the re-check: {'; '.join(errors)}"
+                        seen = store.q(
+                            "SELECT COUNT(*) AS n FROM events WHERE run_id = ? AND node = 'review' AND message = ?",
+                            (run_id, message),
+                        )[0]["n"]
+                        rejected_before = sum(1 for e in earlier_errors if e == message)
+                        earlier_errors.append(message)
+                        if seen <= rejected_before:  # a resumed node replays earlier answers: log each once
+                            store.event(run_id, "review", message, "warn")
                         continue
                     plan = edited
                 break

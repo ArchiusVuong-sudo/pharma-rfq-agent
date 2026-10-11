@@ -145,3 +145,19 @@ async def test_review_past_sla_raises_an_alert(tmp_path: Path) -> None:
         svc.sweep_alerts()
         svc.sweep_alerts()
         assert [a["kind"] for a in svc.store.q("SELECT kind FROM alerts")] == ["review_sla"]
+
+
+async def test_replayed_interrupts_do_not_duplicate_the_log(tmp_path: Path) -> None:
+    async with service(tmp_path) as svc:
+        run_id = await award(svc)
+        [review] = svc.store.reviews("pending")
+        bad = {"action": "edit", "allocations": kept_split(review, 50_000, 130_000)}
+        await svc.resume_review(review["id"], bad)
+        await svc.resume_review(review["id"], bad)
+        await svc.resume_review(review["id"], {"action": "approve"})
+        rejected = svc.store.q(
+            "SELECT message FROM events WHERE run_id = ? AND message LIKE 'Edited split rejected%'", (run_id,)
+        )
+        assert len(rejected) == 2  # two bad edits, each logged once
+        waiting = svc.store.q("SELECT attrs FROM spans WHERE run_id = ? AND status = 'waiting'", (run_id,))
+        assert waiting and all("error" not in s["attrs"] for s in waiting)
