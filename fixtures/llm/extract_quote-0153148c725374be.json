@@ -1,0 +1,50 @@
+{
+  "key": "extract_quote-0153148c725374be",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Halden Medical Supply\nSubject: ORS availability\n\nEmail body:\n<<<\nHi, we have ORS sachets in stock, 100 per carton. Price on request.\nLead time",
+  "response": {
+    "cache_read_tokens": 5496,
+    "cost_usd": 0.0081018,
+    "input_tokens": 953,
+    "latency_ms": 5117.7,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": null,
+          "gmp_certificate_number": null,
+          "incoterm": null,
+          "lead_time_days": 14,
+          "max_units": null,
+          "moq_units": null,
+          "price_amount": null,
+          "price_per_quantity": null,
+          "product_id": "P-ORS-1L-SACHET",
+          "product_text": "ORS sachets",
+          "shelf_life_months": 30,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Halden Medical Supply",
+      "unreadable_reason": null
+    },
+    "output_tokens": 306,
+    "recorded_at": "2026-10-11T03:07:44Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "query": "ORS sachets"
+        },
+        "is_error": false,
+        "latency_ms": 0.19,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-ORS-1L-SACHET\", \"name\": \"Oral rehydration salts 1 L sachet\", \"unit\": \"sachet\", \"pack_sizes\": [50, 100], \"cold_chain\": false, \"score\": 100.0}]",
+        "start_ms": 1791688061754.105
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

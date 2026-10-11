@@ -1,0 +1,50 @@
+{
+  "key": "extract_quote-1de662a71c069c11",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Orrin Distribution\nSubject: ACT offer\n\nEmail body:\n<<<\nHello, artemether lumefantrine 20/120 tabs: USD 1.20 per 100 tablets CIP.\nMOQ 30,000, u",
+  "response": {
+    "cache_read_tokens": 5527,
+    "cost_usd": 0.008567700000000001,
+    "input_tokens": 999,
+    "latency_ms": 5192.1,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": "USD",
+          "gmp_certificate_number": null,
+          "incoterm": "CIP",
+          "lead_time_days": 20,
+          "max_units": 300000,
+          "moq_units": 30000,
+          "price_amount": 1.2,
+          "price_per_quantity": 100,
+          "product_id": "P-AL-20-120-TAB",
+          "product_text": "artemether lumefantrine 20/120 tabs",
+          "shelf_life_months": 21,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Orrin Distribution",
+      "unreadable_reason": null
+    },
+    "output_tokens": 333,
+    "recorded_at": "2026-10-11T03:07:42Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "query": "artemether lumefantrine 20/120 tabs"
+        },
+        "is_error": false,
+        "latency_ms": 0.21,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-AL-20-120-TAB\", \"name\": \"Artemether/lumefantrine 20/120 mg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [24, 360], \"cold_chain\": false, \"score\": 100.0}]",
+        "start_ms": 1791688059631.746
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

@@ -1,0 +1,50 @@
+{
+  "key": "extract_quote-beb4a8219a54b993",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Velmora Labs\nSubject: ORS sachets\n\nEmail body:\n<<<\nDear team, low osmolarity ORS sachets (1 L) at USD 7.50 per 100 sachets CIF.\nMOQ 10,000 sac",
+  "response": {
+    "cache_read_tokens": 5534,
+    "cost_usd": 0.0085786,
+    "input_tokens": 1004,
+    "latency_ms": 5251.9,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": "USD",
+          "gmp_certificate_number": null,
+          "incoterm": "CIF",
+          "lead_time_days": 25,
+          "max_units": 120000,
+          "moq_units": 10000,
+          "price_amount": 7.5,
+          "price_per_quantity": 100,
+          "product_id": "P-ORS-1L-SACHET",
+          "product_text": "low osmolarity ORS sachets (1 L)",
+          "shelf_life_months": 32,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Velmora Labs",
+      "unreadable_reason": null
+    },
+    "output_tokens": 332,
+    "recorded_at": "2026-10-11T03:07:32Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "query": "low osmolarity ORS sachets 1 L"
+        },
+        "is_error": false,
+        "latency_ms": 0.25,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-ORS-1L-SACHET\", \"name\": \"Oral rehydration salts 1 L sachet\", \"unit\": \"sachet\", \"pack_sizes\": [50, 100], \"cold_chain\": false, \"score\": 100.0}]",
+        "start_ms": 1791688049953.1418
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

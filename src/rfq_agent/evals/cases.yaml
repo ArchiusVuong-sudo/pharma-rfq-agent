@@ -1,0 +1,277 @@
+# Labelled eval cases. Synthetic: invented suppliers, emails and numbers.
+# Scored at the seed date (AS_OF). C01-C06 are the six demo emails; C07-C18 cover each policy rule.
+# expected.fields are what the model must read from the email (null = must stay empty).
+# expected.flags are check ids that must fire (recall). expected.route is the line decision.
+
+- id: C01
+  title: Pasted table, price per box of 100, USD FCA
+  rule: none (act alone)
+  email_id: E1
+  product_id: P-ZINC-20-DT
+  demands: [{buyer_id: B-UG-01, quantity: 60000}, {buyer_id: B-KE-01, quantity: 40000}, {buyer_id: B-MW-01, quantity: 30000}]
+  expected:
+    fields: {product_id: P-ZINC-20-DT, price_amount: 2.40, currency: USD, price_per_quantity: 100, incoterm: FCA, moq_units: 20000, max_units: 300000, lead_time_days: 30, shelf_life_months: 30, coa_provided: true}
+    flags: []
+    route: act_alone
+
+- id: C02
+  title: New supplier, EUR per 1,000 tablets CIP
+  rule: new_supplier, gmp_expiring
+  email_id: E2
+  product_id: P-AMOX-250-DT
+  demands: [{buyer_id: B-KE-01, quantity: 180000}]
+  expected:
+    fields: {product_id: P-AMOX-250-DT, price_amount: 38.0, currency: EUR, price_per_quantity: 1000, incoterm: CIP, moq_units: 100000, max_units: 200000, lead_time_days: 45, shelf_life_months: 20, coa_provided: true}
+    flags: [new_supplier, gmp_expiring]
+    route: review
+
+- id: C03
+  title: Oxytocin from a supplier with an expired GMP certificate
+  rule: gmp_expired (stop)
+  email_id: E3
+  product_id: P-OXY-10-AMP
+  demands: [{buyer_id: B-UG-01, quantity: 20000}, {buyer_id: B-KE-01, quantity: 15000}, {buyer_id: B-MW-01, quantity: 25000}]
+  expected:
+    fields: {product_id: P-OXY-10-AMP, price_amount: 0.25, currency: USD, price_per_quantity: 1, incoterm: FCA, moq_units: 10000, max_units: 80000, lead_time_days: 28, shelf_life_months: 30, coa_provided: true}
+    flags: [gmp_expired]
+    route: stop
+
+- id: C04
+  title: Oxytocin with no CoA, storage or shelf life
+  rule: missing documents (stop, follow-up)
+  email_id: E4
+  product_id: P-OXY-10-AMP
+  demands: [{buyer_id: B-UG-01, quantity: 20000}, {buyer_id: B-KE-01, quantity: 15000}, {buyer_id: B-MW-01, quantity: 25000}]
+  expected:
+    fields: {product_id: P-OXY-10-AMP, price_amount: 0.27, currency: USD, price_per_quantity: 1, incoterm: CIP, moq_units: 5000, max_units: 70000, lead_time_days: 21, shelf_life_months: null, storage_condition: null}
+    flags: [coa_missing, storage_missing, shelf_life_missing]
+    route: stop
+
+- id: C05
+  title: Unregistered trader far under the reference price
+  rule: registry (stop)
+  email_id: E5
+  product_id: P-AMOX-250-DT
+  demands: [{buyer_id: B-UG-01, quantity: 250000}]
+  expected:
+    fields: {product_id: P-AMOX-250-DT, price_amount: 1.40, currency: USD, price_per_quantity: 100, incoterm: CIF, moq_units: 100000, lead_time_days: 10, shelf_life_months: 24}
+    flags: [registry, price_far_under]
+    route: stop
+
+- id: C06
+  title: Forward pointing to a missing attachment
+  rule: unreadable (stop, follow-up)
+  email_id: E6
+  product_id: P-ZINC-20-DT
+  demands: [{buyer_id: B-UG-01, quantity: 60000}]
+  expected:
+    fields: {product_id: null, price_amount: null}
+    flags: [price_unreadable]
+    route: stop
+
+- id: C07
+  title: Large paracetamol order over the value limit
+  rule: value_limit
+  supplier_id: S-KES
+  product_id: P-PARA-500-TAB
+  demands: [{buyer_id: B-UG-01, quantity: 1800000}, {buyer_id: B-KE-01, quantity: 1200000}, {buyer_id: B-MW-01, quantity: 1000000}]
+  email:
+    subject: Paracetamol 500 offer
+    body: |
+      Hello, for paracetamol 500mg tablets we offer USD 6.50 per 1,000 tablets FOB.
+      MOQ 500,000 tablets, capacity 5,000,000 tablets. Lead time 30 days.
+      Shelf life 44 months at dispatch. CoA attached for each batch.
+      Ravi Menon, Kestrel Generics
+  expected:
+    fields: {product_id: P-PARA-500-TAB, price_amount: 6.50, currency: USD, price_per_quantity: 1000, incoterm: FOB, moq_units: 500000, max_units: 5000000, lead_time_days: 30, shelf_life_months: 44, coa_provided: true}
+    flags: []
+    route: review
+
+- id: C08
+  title: Complete cold-chain quote
+  rule: cold_chain
+  supplier_id: S-HAL
+  product_id: P-OXY-10-AMP
+  demands: [{buyer_id: B-UG-01, quantity: 20000}]
+  email:
+    subject: Oxytocin quote with documents
+    body: |
+      Hi, oxytocin 10 IU/mL 1 mL ampoules at USD 0.28 per ampoule DAP.
+      MOQ 5,000 ampoules, up to 60,000. Lead time 20 days. Remaining shelf life 30 months.
+      Stored and shipped at 2-8 C. Certificate of analysis attached.
+      Grace Atieno, Halden Medical Supply
+  expected:
+    fields: {product_id: P-OXY-10-AMP, price_amount: 0.28, currency: USD, price_per_quantity: 1, incoterm: DAP, moq_units: 5000, max_units: 60000, lead_time_days: 20, shelf_life_months: 30, coa_provided: true}
+    flags: []
+    route: review
+
+- id: C09
+  title: Known supplier with a GMP certificate expiring in 25 days
+  rule: gmp_expiring
+  supplier_id: S-VEL
+  product_id: P-ORS-1L-SACHET
+  demands: [{buyer_id: B-KE-01, quantity: 50000}]
+  email:
+    subject: ORS sachets
+    body: |
+      Dear team, low osmolarity ORS sachets (1 L) at USD 7.50 per 100 sachets CIF.
+      MOQ 10,000 sachets, we can supply 120,000. Lead time 25 days, shelf life 32 months.
+      CoA included. Jonas Albrecht, Velmora Labs
+  expected:
+    fields: {product_id: P-ORS-1L-SACHET, price_amount: 7.50, currency: USD, price_per_quantity: 100, incoterm: CIF, moq_units: 10000, max_units: 120000, lead_time_days: 25, shelf_life_months: 32, coa_provided: true}
+    flags: [gmp_expiring]
+    route: review
+
+- id: C10
+  title: Lead time in weeks, arrives after the needed-by date
+  rule: late_delivery
+  supplier_id: S-ORR
+  product_id: P-AL-20-120-TAB
+  demands: [{buyer_id: B-MW-01, quantity: 100000}]
+  email:
+    subject: AL 20/120 tablets
+    body: |
+      Hi, artemether/lumefantrine 20/120 mg tablets: USD 3.20 per 100 tablets FCA.
+      MOQ 20,000 tablets, max 400,000. Lead time 12 weeks. Shelf life 22 months.
+      CoA attached. Nadia Lindqvist, Orrin Distribution
+  expected:
+    fields: {product_id: P-AL-20-120-TAB, price_amount: 3.20, currency: USD, price_per_quantity: 100, incoterm: FCA, moq_units: 20000, max_units: 400000, lead_time_days: 84, shelf_life_months: 22, coa_provided: true}
+    flags: [late_delivery]
+    route: review
+
+- id: C11
+  title: Capacity covers only part of the pooled demand
+  rule: partial_supply
+  supplier_id: S-PIN
+  product_id: P-MISO-200-TAB
+  demands: [{buyer_id: B-UG-01, quantity: 30000}, {buyer_id: B-MW-01, quantity: 30000}]
+  email:
+    subject: Misoprostol 200 mcg
+    body: |
+      Hello, misoprostol 200 microgram tablets, USD 11.00 per 100 tablets CIP.
+      We can supply at most 40,000 tablets this quarter, MOQ 5,000. Lead time 30 days.
+      Shelf life at dispatch 22 months. CoA attached.
+      Mei Tanaka, Pinecrest Pharma
+  expected:
+    fields: {product_id: P-MISO-200-TAB, price_amount: 11.00, currency: USD, price_per_quantity: 100, incoterm: CIP, moq_units: 5000, max_units: 40000, lead_time_days: 30, shelf_life_months: 22, coa_provided: true}
+    flags: []
+    route: review
+
+- id: C12
+  title: Supplier not registered in the buyer's country
+  rule: registration (stop)
+  supplier_id: S-HAL
+  product_id: P-MISO-200-TAB
+  demands: [{buyer_id: B-KE-01, quantity: 20000}]
+  email:
+    subject: Misoprostol quote
+    body: |
+      Hi, miso 200mcg tabs at USD 0.115 per tablet CIP, MOQ 2,000, up to 50,000.
+      Lead time 14 days, shelf life 20 months, CoA attached.
+      Grace, Halden Medical Supply
+  expected:
+    fields: {product_id: P-MISO-200-TAB, price_amount: 0.115, currency: USD, price_per_quantity: 1, incoterm: CIP, moq_units: 2000, max_units: 50000, lead_time_days: 14, shelf_life_months: 20, coa_provided: true}
+    flags: [registration]
+    route: stop
+
+- id: C13
+  title: Short shelf life on arrival
+  rule: shelf_life_short (stop)
+  supplier_id: S-KES
+  product_id: P-PARA-500-TAB
+  demands: [{buyer_id: B-UG-01, quantity: 300000}]
+  email:
+    subject: Paracetamol clearance lot
+    body: |
+      Hello, paracetamol 500 mg tablets, USD 7.00 per 1,000 tablets FCA, MOQ 100,000, max 900,000.
+      Lead time 30 days. Remaining shelf life 18 months. CoA attached.
+      Ravi Menon, Kestrel Generics
+  expected:
+    fields: {product_id: P-PARA-500-TAB, price_amount: 7.00, currency: USD, price_per_quantity: 1000, incoterm: FCA, moq_units: 100000, max_units: 900000, lead_time_days: 30, shelf_life_months: 18, coa_provided: true}
+    flags: [shelf_life_short]
+    route: stop
+
+- id: C14
+  title: Known supplier far over the reference price
+  rule: price_outlier only
+  supplier_id: S-ORR
+  product_id: P-ZINC-20-DT
+  demands: [{buyer_id: B-KE-01, quantity: 40000}]
+  email:
+    subject: Zinc 20 mg quote
+    body: |
+      Hi team, zinc 20mg DT, USD 5.00 per box of 100 tablets, CIP.
+      MOQ 10,000 tablets, max 200,000 tablets. Lead time 21 days, shelf life 30 months, CoA attached.
+      Nadia Lindqvist, Orrin Distribution
+  expected:
+    fields: {product_id: P-ZINC-20-DT, price_amount: 5.00, currency: USD, price_per_quantity: 100, incoterm: CIP, moq_units: 10000, max_units: 200000, lead_time_days: 21, shelf_life_months: 30, coa_provided: true}
+    flags: [price_far_over]
+    route: review
+
+- id: C15
+  title: Known supplier far under the reference price (paracetamol)
+  rule: price_outlier only
+  supplier_id: S-KES
+  product_id: P-PARA-500-TAB
+  demands: [{buyer_id: B-MW-01, quantity: 300000}]
+  email:
+    subject: Paracetamol 500 special price
+    body: |
+      Dear buyer, paracetamol 500mg tablets at USD 2.80 per 1,000 tablets FCA.
+      MOQ 100,000 tablets, max 2,000,000. Lead time 25 days, shelf life 46 months. CoA attached.
+      Ravi Menon, Kestrel Generics
+  expected:
+    fields: {product_id: P-PARA-500-TAB, price_amount: 2.80, currency: USD, price_per_quantity: 1000, incoterm: FCA, moq_units: 100000, max_units: 2000000, lead_time_days: 25, shelf_life_months: 46, coa_provided: true}
+    flags: [price_far_under]
+    route: review
+
+- id: C16
+  title: Known supplier far under the reference price (AL)
+  rule: price_outlier only
+  supplier_id: S-ORR
+  product_id: P-AL-20-120-TAB
+  demands: [{buyer_id: B-UG-01, quantity: 150000}]
+  email:
+    subject: ACT offer
+    body: |
+      Hello, artemether lumefantrine 20/120 tabs: USD 1.20 per 100 tablets CIP.
+      MOQ 30,000, up to 300,000 tablets. Lead time 20 days. Shelf life 21 months. CoA attached.
+      Nadia, Orrin Distribution
+  expected:
+    fields: {product_id: P-AL-20-120-TAB, price_amount: 1.20, currency: USD, price_per_quantity: 100, incoterm: CIP, moq_units: 30000, max_units: 300000, lead_time_days: 20, shelf_life_months: 21, coa_provided: true}
+    flags: [price_far_under]
+    route: review
+
+- id: C17
+  title: Clean quote from a known supplier
+  rule: none (act alone)
+  supplier_id: S-PIN
+  product_id: P-MGSO4-50-AMP
+  demands: [{buyer_id: B-MW-01, quantity: 8000}]
+  email:
+    subject: Magnesium sulfate injection
+    body: |
+      Dear team, magnesium sulphate 50% 10 mL ampoules: USD 0.42 per ampoule CIF.
+      MOQ 2,000 ampoules, capacity 30,000. Lead time 25 days, shelf life 34 months. CoA attached.
+      Mei Tanaka, Pinecrest Pharma
+  expected:
+    fields: {product_id: P-MGSO4-50-AMP, price_amount: 0.42, currency: USD, price_per_quantity: 1, incoterm: CIF, moq_units: 2000, max_units: 30000, lead_time_days: 25, shelf_life_months: 34, coa_provided: true}
+    flags: []
+    route: act_alone
+
+- id: C18
+  title: Price on request
+  rule: price_unreadable (stop, follow-up)
+  supplier_id: S-HAL
+  product_id: P-ORS-1L-SACHET
+  demands: [{buyer_id: B-UG-01, quantity: 40000}]
+  email:
+    subject: ORS availability
+    body: |
+      Hi, we have ORS sachets in stock, 100 per carton. Price on request.
+      Lead time 14 days, shelf life 30 months, CoA attached.
+      Grace, Halden Medical Supply
+  expected:
+    fields: {product_id: P-ORS-1L-SACHET, price_amount: null, currency: null, lead_time_days: 14, shelf_life_months: 30, coa_provided: true}
+    flags: [price_unreadable]
+    route: stop

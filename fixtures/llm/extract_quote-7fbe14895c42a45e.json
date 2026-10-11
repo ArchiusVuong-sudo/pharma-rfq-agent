@@ -1,0 +1,50 @@
+{
+  "key": "extract_quote-7fbe14895c42a45e",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Orrin Distribution\nSubject: AL 20/120 tablets\n\nEmail body:\n<<<\nHi, artemether/lumefantrine 20/120 mg tablets: USD 3.20 per 100 tablets FCA.\nMO",
+  "response": {
+    "cache_read_tokens": 5545,
+    "cost_usd": 0.009074800000000001,
+    "input_tokens": 1110,
+    "latency_ms": 9049.9,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": "USD",
+          "gmp_certificate_number": null,
+          "incoterm": "FCA",
+          "lead_time_days": 84,
+          "max_units": 400000,
+          "moq_units": 20000,
+          "price_amount": 3.2,
+          "price_per_quantity": 100,
+          "product_id": "P-AL-20-120-TAB",
+          "product_text": "artemether/lumefantrine 20/120 mg tablets",
+          "shelf_life_months": 22,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Orrin Distribution",
+      "unreadable_reason": null
+    },
+    "output_tokens": 339,
+    "recorded_at": "2026-10-11T03:07:37Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "query": "artemether/lumefantrine 20/120 mg tablets"
+        },
+        "is_error": false,
+        "latency_ms": 0.14,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-AL-20-120-TAB\", \"name\": \"Artemether/lumefantrine 20/120 mg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [24, 360], \"cold_chain\": false, \"score\": 100.0}, {\"product_id\": \"P-ZINC-20-DT\", \"name\": \"Zinc sulfate 20 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 53.8}]",
+        "start_ms": 1791688050580.224
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

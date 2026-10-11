@@ -1,0 +1,51 @@
+{
+  "key": "extract_quote-9de8ee34cc7560f9",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Brightwater Pharma\nSubject: Offer amoxicillin 250 DT / RFQ-SYN-0107\n\nEmail body:\n<<<\nHello,\n\nFurther to your RFQ, we are pleased to offer:\n\nAm",
+  "response": {
+    "cache_read_tokens": 6208,
+    "cost_usd": 0.007886,
+    "input_tokens": 643,
+    "latency_ms": 5294.2,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": "EUR",
+          "gmp_certificate_number": "SYN-GMP-9013",
+          "incoterm": "CIP",
+          "lead_time_days": 45,
+          "max_units": 200000,
+          "moq_units": 100000,
+          "price_amount": 38,
+          "price_per_quantity": 1000,
+          "product_id": "P-AMOX-250-DT",
+          "product_text": "Amoxicillin trihydrate 250 mg dispersible tablets, blister packs of 10x10",
+          "shelf_life_months": 20,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Brightwater Pharma",
+      "unreadable_reason": null
+    },
+    "output_tokens": 392,
+    "recorded_at": "2026-10-11T03:07:22Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "limit": 5,
+          "query": "Amoxicillin trihydrate 250 mg dispersible tablets"
+        },
+        "is_error": false,
+        "latency_ms": 0.34,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-AMOX-250-DT\", \"name\": \"Amoxicillin 250 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}]",
+        "start_ms": 1791688039859.842
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

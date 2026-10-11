@@ -1,0 +1,50 @@
+{
+  "key": "extract_quote-9b132243a63a934e",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Halden Medical Supply\nSubject: Misoprostol quote\n\nEmail body:\n<<<\nHi, miso 200mcg tabs at USD 0.115 per tablet CIP, MOQ 2,000, up to 50,000.\nL",
+  "response": {
+    "cache_read_tokens": 5518,
+    "cost_usd": 0.008451299999999998,
+    "input_tokens": 983,
+    "latency_ms": 6107.6,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": "USD",
+          "gmp_certificate_number": null,
+          "incoterm": "CIP",
+          "lead_time_days": 14,
+          "max_units": 50000,
+          "moq_units": 2000,
+          "price_amount": 0.115,
+          "price_per_quantity": 1,
+          "product_id": "P-MISO-200-TAB",
+          "product_text": "miso 200mcg tabs",
+          "shelf_life_months": 20,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Halden Medical Supply",
+      "unreadable_reason": null
+    },
+    "output_tokens": 323,
+    "recorded_at": "2026-10-11T03:07:35Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "query": "Misoprostol 200mcg tablets"
+        },
+        "is_error": false,
+        "latency_ms": 0.15,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-MISO-200-TAB\", \"name\": \"Misoprostol 200 mcg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [28, 100], \"cold_chain\": false, \"score\": 100.0}]",
+        "start_ms": 1791688052386.1409
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

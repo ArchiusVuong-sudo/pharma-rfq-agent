@@ -1,0 +1,62 @@
+# Autonomy policy for the quote-to-award step.
+# DEMO SETTINGS: every value below is an invented setting for this demo, not regulatory guidance.
+
+checks:
+  gmp_expiry_warn_days: 60          # a GMP certificate expiring within this window needs a person
+  shelf_life_min_share_on_arrival: 0.6   # remaining shelf life on arrival / total shelf life
+  price_far_under_share: 0.6        # landed unit price under 60% of the reference is suspicious
+  price_far_over_share: 1.5         # landed unit price over 150% of the reference
+  new_supplier_min_orders: 3        # fewer completed orders than this means "new supplier"
+
+# Demo assumptions for landed cost (fixed rates, not live data)
+fx_to_usd:
+  USD: 1.0
+  EUR: 1.08
+  GBP: 1.27
+  INR: 0.012
+incoterm_uplift:                    # freight and insurance added on top of the quoted price
+  EXW: 0.10
+  FCA: 0.06
+  FOB: 0.06
+  CIF: 0.02
+  CIP: 0.02
+  DAP: 0.01
+  DDP: 0.0
+
+# Line rules. The strictest route among the rules that fire wins: stop > review > act_alone.
+rules:
+  - id: no_supply
+    route: stop
+    description: No compliant quote can serve any buyer on the line
+  - id: partial_supply
+    route: review
+    description: Compliant quotes cover only part of the pooled demand
+  - id: value_limit
+    route: review
+    limit_usd: 20000
+    description: Award value over the act-alone limit
+  - id: new_supplier
+    route: review
+    description: Award goes to a supplier with too few completed orders
+  - id: cold_chain
+    route: review
+    description: Cold-chain product (2-8 C), a person confirms the logistics
+  - id: price_outlier
+    route: review
+    description: An awarded quote is far under or over the reference price
+  - id: gmp_expiring
+    route: review
+    description: An awarded supplier's GMP certificate expires soon
+  - id: late_delivery
+    route: review
+    description: An awarded quote arrives after a buyer's needed-by date
+
+# Supplier follow-ups for missing documents or unreadable quotes are sent by the agent alone.
+follow_up:
+  route: act_alone
+  max_words: 120
+
+monitoring:
+  run_cost_budget_usd: 0.60         # API-equivalent cost per run
+  run_latency_budget_s: 150         # active run time, review wait excluded
+  review_sla_minutes: 30

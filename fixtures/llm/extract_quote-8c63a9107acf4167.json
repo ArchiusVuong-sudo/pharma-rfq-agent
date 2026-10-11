@@ -1,0 +1,50 @@
+{
+  "key": "extract_quote-8c63a9107acf4167",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Corvane Biologics\nSubject: Oxytocin 10 IU tender response\n\nEmail body:\n<<<\nDear Sir/Madam,\n\nRe: oxytocin injection 10 IU/mL, 1 mL ampoules.\n\nU",
+  "response": {
+    "cache_read_tokens": 6131,
+    "cost_usd": 0.0078379,
+    "input_tokens": 711,
+    "latency_ms": 6126.9,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": "USD",
+          "gmp_certificate_number": "SYN-GMP-2208",
+          "incoterm": "FCA",
+          "lead_time_days": 28,
+          "max_units": 80000,
+          "moq_units": 10000,
+          "price_amount": 0.25,
+          "price_per_quantity": 1,
+          "product_id": "P-OXY-10-AMP",
+          "product_text": "oxytocin injection 10 IU/mL, 1 mL ampoules",
+          "shelf_life_months": 30,
+          "storage_condition": "2-8 C"
+        }
+      ],
+      "supplier_name": "Corvane Biologics",
+      "unreadable_reason": null
+    },
+    "output_tokens": 362,
+    "recorded_at": "2026-10-11T03:07:23Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "query": "oxytocin injection 10 IU/mL 1 mL ampoule"
+        },
+        "is_error": false,
+        "latency_ms": 0.19,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-OXY-10-AMP\", \"name\": \"Oxytocin 10 IU/mL 1 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": true, \"score\": 100.0}, {\"product_id\": \"P-MGSO4-50-AMP\", \"name\": \"Magnesium sulfate 50% 10 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": false, \"score\": 58.7}]",
+        "start_ms": 1791688040331.0771
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

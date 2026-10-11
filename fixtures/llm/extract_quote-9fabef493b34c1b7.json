@@ -1,0 +1,50 @@
+{
+  "key": "extract_quote-9fabef493b34c1b7",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Pinecrest Pharma\nSubject: Misoprostol 200 mcg\n\nEmail body:\n<<<\nHello, misoprostol 200 microgram tablets, USD 11.00 per 100 tablets CIP.\nWe can",
+  "response": {
+    "cache_read_tokens": 5553,
+    "cost_usd": 0.0085915,
+    "input_tokens": 1015,
+    "latency_ms": 5522.0,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": "USD",
+          "gmp_certificate_number": null,
+          "incoterm": "CIP",
+          "lead_time_days": 30,
+          "max_units": 40000,
+          "moq_units": 5000,
+          "price_amount": 11,
+          "price_per_quantity": 100,
+          "product_id": "P-MISO-200-TAB",
+          "product_text": "misoprostol 200 microgram tablets",
+          "shelf_life_months": 22,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Pinecrest Pharma",
+      "unreadable_reason": null
+    },
+    "output_tokens": 328,
+    "recorded_at": "2026-10-11T03:07:34Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "query": "misoprostol 200 mcg tablets"
+        },
+        "is_error": false,
+        "latency_ms": 0.42,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-MISO-200-TAB\", \"name\": \"Misoprostol 200 mcg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [28, 100], \"cold_chain\": false, \"score\": 100.0}]",
+        "start_ms": 1791688051294.2842
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

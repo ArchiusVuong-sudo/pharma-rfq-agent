@@ -1,0 +1,22 @@
+{
+  "key": "draft_follow_up-733bdf33e2655c05",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "RFQ: RFQ-SYN-0107\nSupplier: Halden Medical Supply\nContact: Grace Atieno\nProduct quoted: Oxytocin 10 IU/mL 1 mL ampoule\nMissing items to ask for:\n- a certificate",
+  "response": {
+    "cache_read_tokens": 0,
+    "cost_usd": 0.0084305,
+    "input_tokens": 1422,
+    "latency_ms": 4442.9,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "body": "Dear Grace,\n\nThank you for your quotation for Oxytocin 10 IU/mL, 1 mL ampoule (RFQ-SYN-0107). To complete our review, could you please send us the following:\n\n1. A certificate of analysis (CoA)\n2. Confirmation of 2-8 C storage and transport\n3. The remaining shelf life at dispatch\n\nPlease reply with these items at your earliest convenience. Let us know if you have any questions.\n\nKind regards,\nProcurement team",
+      "subject": "RFQ-SYN-0107: Information needed for your Oxytocin quotation"
+    },
+    "output_tokens": 260,
+    "recorded_at": "2026-10-11T03:05:13Z",
+    "source": "live",
+    "tool_calls": [],
+    "transport_retries": 0
+  },
+  "task": "draft_follow_up"
+}

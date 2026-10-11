@@ -1,0 +1,51 @@
+{
+  "key": "extract_quote-66c1d6387ed97488",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Halden Medical Supply\nSubject: Quote: oxytocin ampoules\n\nEmail body:\n<<<\nHi,\n\nWe can offer oxytocin 10iu/ml amp at USD 0.27 each, CIP to each ",
+  "response": {
+    "cache_read_tokens": 5956,
+    "cost_usd": 0.007716000000000001,
+    "input_tokens": 724,
+    "latency_ms": 6154.3,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": null,
+          "currency": "USD",
+          "gmp_certificate_number": null,
+          "incoterm": "CIP",
+          "lead_time_days": 21,
+          "max_units": 70000,
+          "moq_units": 5000,
+          "price_amount": 0.27,
+          "price_per_quantity": 1,
+          "product_id": "P-OXY-10-AMP",
+          "product_text": "oxytocin 10iu/ml amp",
+          "shelf_life_months": null,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Halden Medical Supply",
+      "unreadable_reason": null
+    },
+    "output_tokens": 349,
+    "recorded_at": "2026-10-11T03:07:23Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "limit": 5,
+          "query": "oxytocin 10iu/ml amp"
+        },
+        "is_error": false,
+        "latency_ms": 0.17,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-OXY-10-AMP\", \"name\": \"Oxytocin 10 IU/mL 1 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": true, \"score\": 100.0}, {\"product_id\": \"P-MGSO4-50-AMP\", \"name\": \"Magnesium sulfate 50% 10 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": false, \"score\": 46.4}]",
+        "start_ms": 1791688040319.3591
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

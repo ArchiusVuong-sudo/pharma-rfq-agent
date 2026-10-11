@@ -1,0 +1,23 @@
+{
+  "key": "extract_quote-086c9e432881df1f",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Orrin Distribution\nSubject: Fwd: zinc offer\n\nEmail body:\n<<<\nHi team,\n\nForwarding our offer for the zinc line, see the attached price schedule",
+  "response": {
+    "cache_read_tokens": 2796,
+    "cost_usd": 0.003834,
+    "input_tokens": 396,
+    "latency_ms": 3920.5,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [],
+      "supplier_name": "Orrin Distribution",
+      "unreadable_reason": "The email points to an attached PDF price schedule (Orrin_zinc_Q4.pdf) that was not included, so no quote details are present."
+    },
+    "output_tokens": 155,
+    "recorded_at": "2026-10-11T03:07:27Z",
+    "source": "live",
+    "tool_calls": [],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

@@ -1,0 +1,50 @@
+{
+  "key": "extract_quote-94e367b8c856155b",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Kestrel Generics\nSubject: Paracetamol 500 offer\n\nEmail body:\n<<<\nHello, for paracetamol 500mg tablets we offer USD 6.50 per 1,000 tablets FOB.",
+  "response": {
+    "cache_read_tokens": 5555,
+    "cost_usd": 0.008549399999999999,
+    "input_tokens": 1015,
+    "latency_ms": 5160.7,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": "USD",
+          "gmp_certificate_number": null,
+          "incoterm": "FOB",
+          "lead_time_days": 30,
+          "max_units": 5000000,
+          "moq_units": 500000,
+          "price_amount": 6.5,
+          "price_per_quantity": 1000,
+          "product_id": "P-PARA-500-TAB",
+          "product_text": "paracetamol 500mg tablets",
+          "shelf_life_months": 44,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Kestrel Generics",
+      "unreadable_reason": null
+    },
+    "output_tokens": 324,
+    "recorded_at": "2026-10-11T03:07:28Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "query": "paracetamol 500mg tablets"
+        },
+        "is_error": false,
+        "latency_ms": 0.2,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-PARA-500-TAB\", \"name\": \"Paracetamol 500 mg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}]",
+        "start_ms": 1791688045956.5461
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}

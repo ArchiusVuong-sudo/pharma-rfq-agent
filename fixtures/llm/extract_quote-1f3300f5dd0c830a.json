@@ -1,0 +1,75 @@
+{
+  "key": "extract_quote-1f3300f5dd0c830a",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "Supplier on file: Kestrel Generics\nSubject: RE: RFQ-SYN-0107 quotation - zinc and amoxicillin\n\nEmail body:\n<<<\nDear procurement team,\n\nThank you for including u",
+  "response": {
+    "cache_read_tokens": 6330,
+    "cost_usd": 0.01113,
+    "input_tokens": 1011,
+    "latency_ms": 6147.3,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "items": [
+        {
+          "coa_provided": true,
+          "currency": "USD",
+          "gmp_certificate_number": "SYN-GMP-4471",
+          "incoterm": "FCA",
+          "lead_time_days": 30,
+          "max_units": 300000,
+          "moq_units": 20000,
+          "price_amount": 2.4,
+          "price_per_quantity": 100,
+          "product_id": "P-ZINC-20-DT",
+          "product_text": "Zinc sulfate 20mg dispersible",
+          "shelf_life_months": 30,
+          "storage_condition": null
+        },
+        {
+          "coa_provided": true,
+          "currency": "USD",
+          "gmp_certificate_number": "SYN-GMP-4471",
+          "incoterm": "FCA",
+          "lead_time_days": 35,
+          "max_units": 600000,
+          "moq_units": 50000,
+          "price_amount": 4.6,
+          "price_per_quantity": 100,
+          "product_id": "P-AMOX-250-DT",
+          "product_text": "Amoxicillin 250mg dispersible",
+          "shelf_life_months": 22,
+          "storage_condition": null
+        }
+      ],
+      "supplier_name": "Kestrel Generics",
+      "unreadable_reason": null
+    },
+    "output_tokens": 566,
+    "recorded_at": "2026-10-11T03:07:23Z",
+    "source": "live",
+    "tool_calls": [
+      {
+        "input": {
+          "query": "Zinc sulfate 20mg dispersible"
+        },
+        "is_error": false,
+        "latency_ms": 0.21,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-ZINC-20-DT\", \"name\": \"Zinc sulfate 20 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}, {\"product_id\": \"P-AL-20-120-TAB\", \"name\": \"Artemether/lumefantrine 20/120 mg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [24, 360], \"cold_chain\": false, \"score\": 47.6}, {\"product_id\": \"P-AMOX-250-DT\", \"name\": \"Amoxicillin 250 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 46.0}]",
+        "start_ms": 1791688040126.53
+      },
+      {
+        "input": {
+          "query": "Amoxicillin 250mg dispersible"
+        },
+        "is_error": false,
+        "latency_ms": 0.16,
+        "name": "search_catalog",
+        "output": "[{\"product_id\": \"P-AMOX-250-DT\", \"name\": \"Amoxicillin 250 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}]",
+        "start_ms": 1791688040133.204
+      }
+    ],
+    "transport_retries": 0
+  },
+  "task": "extract_quote"
+}
