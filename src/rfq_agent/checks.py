@@ -36,7 +36,7 @@ class CheckContext:
         return next((ln for ln in self.rfq.lines if ln.product_id == product_id), None)
 
 
-COLD_CHAIN_RE = re.compile(r"\b2\s*(?:-|to|–)\s*8\s*°?\s*c\b", re.IGNORECASE)
+COLD_CHAIN_RE = re.compile(r"\b2\s*(?:-|to|\u2013)\s*8\s*°?\s*c\b", re.IGNORECASE)
 
 EMPTY_ITEM = QuoteItem(
     product_text="(no readable quote)",

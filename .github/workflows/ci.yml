@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DEMO_REPLAY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install from the lockfile
+        run: uv sync --frozen
+      - name: Lint
+        run: uv run ruff check src tests scripts
+      - name: Type check
+        run: uv run mypy
+      - name: Tests (replay mode, no model calls)
+        run: uv run pytest -q
+      - name: Eval gate (fails on any unsafe auto-approval)
+        run: uv run python -m rfq_agent.evals --gate

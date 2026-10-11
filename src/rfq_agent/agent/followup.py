@@ -24,7 +24,7 @@ MISSING_KEYWORDS: dict[str, tuple[str, ...]] = {
     "price_unreadable": ("price",),
     "incoterm_missing": ("incoterm",),
     "coa_missing": ("certificate of analysis", "coa"),
-    "storage_missing": ("2-8", "2 to 8", "2–8"),
+    "storage_missing": ("2-8", "2 to 8", "2\u20138"),
     "shelf_life_missing": ("shelf life", "shelf-life"),
     "lead_time_missing": ("lead time", "lead-time"),
 }
