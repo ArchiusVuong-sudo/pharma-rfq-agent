@@ -61,9 +61,7 @@ def _flag(check: str, severity: Severity, label: str, detail: str) -> Flag:
 
 def supplier_flags(supplier: Supplier | None, ctx: CheckContext) -> list[Flag]:
     if supplier is None or not supplier.in_registry:
-        return [
-            _flag("registry", Severity.BLOCK, "Not in supplier registry", "Supplier is not in the vetted registry")
-        ]
+        return [_flag("registry", Severity.BLOCK, "Not in supplier registry", "Supplier is not in the vetted registry")]
     flags: list[Flag] = []
     if supplier.gmp is None:
         flags.append(_flag("gmp_expired", Severity.BLOCK, "No GMP certificate", "No GMP certificate on file"))
@@ -230,7 +228,7 @@ def check_email(email: QuoteEmail, extracted: ExtractedQuote, ctx: CheckContext)
                     "price_unreadable" if product is None else "not_on_rfq",
                     Severity.HOLD if product is None else Severity.INFO,
                     "Could not read a price" if product is None else "Not on this RFQ",
-                    extracted.unreadable_reason or "a readable quote for the RFQ product"
+                    "a readable quote in the email body: product, price, currency and pack basis"
                     if product is None
                     else f"{product.name} is not requested",
                 )

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Review queue{% endblock %}
+{% block crumbs %}<b>Review queue</b>{% endblock %}
+{% block content %}
+{% set route_cls = {'act_alone': 'green', 'review': 'amber', 'stop': 'red'} %}
+<div class="page-head">
+  <div>
+    <h1>Review queue</h1>
+    <div class="sub">Lines the policy sent to a person. The paused run resumes from its checkpoint when you decide. SLA {{ sla }} min (demo setting).</div>
+  </div>
+</div>
+
+{% if not cards %}
+<div class="card"><div class="empty">
+  <svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg>
+  <b>Nothing to review</b>When a line needs a person (high value, new supplier, cold chain, price outlier), it shows up here.
+</div></div>
+{% endif %}
+
+{% for c in cards %}{% set r = c.review %}
+<div class="card review-card" id="{{ r.id }}" style="margin-bottom: 16px;">
+  <div class="card-head">
+    <div>
+      <h2>{{ c.product.name }}</h2>
+      <div class="small muted" style="margin-top: 2px;"><span class="mono">{{ r.id }}</span> &middot; line {{ c.line.id }} &middot; run <a href="/runs/{{ r.run_id }}" class="mono">{{ r.run_id }}</a> &middot; opened {{ r.created_at|when }}</div>
+    </div>
+    <div class="right">
+      {% if r.status == 'pending' %}<span class="chip amber"><span class="i"></span>Waiting for you</span>
+      {% elif r.status == 'rejected' %}<span class="chip red">Rejected</span>
+      {% elif r.status == 'changes' %}<span class="chip green">Approved with changes</span>
+      {% else %}<span class="chip green">Approved</span>{% endif %}
+    </div>
+  </div>
+  <div class="card-body">
+    <h3 style="margin-bottom: 6px;">Why it needs a person</h3>
+    <ul class="rules" style="margin-top: 0;">
+      {% for h in c.decision.rules_fired %}
+      <li><span class="chip {{ route_cls[h.route] }}">{{ h.route|route_label }}</span><code>{{ h.rule }}</code><span class="muted">{{ h.reason }}</span></li>
+      {% endfor %}
+    </ul>
+
+    {% if r.status == 'pending' %}
+    <form method="post" action="/reviews/{{ r.id }}" style="margin-top: 14px;" onsubmit="this.classList.add('busy')">
+      {% if c.errors %}
+      <div class="small" style="font-weight: 600; color: var(--red); margin-bottom: 6px;">The agent re-checked your edited split and sent it back:</div>
+      <ul class="errors">{% for e in c.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+      {% endif %}
+      <h3 style="margin-bottom: 6px;">Proposed split <span class="muted small" style="font-weight: 500;">edit units to move volume between compliant suppliers; the agent re-checks registration, capacity and MOQ</span></h3>
+      <table class="split" style="margin-top: 0;">
+        <tr><th>Buyer</th><th class="num">Demand</th><th>Supplier</th><th class="num">Landed / unit</th><th class="num">MOQ</th><th class="num">Capacity</th><th>Checks</th><th class="num">Units</th></tr>
+        {% for o in c.options %}
+        <tr>
+          <td>{{ o.buyer.name }} <span class="faint">{{ o.buyer.country }}</span></td>
+          <td class="num">{{ o.demand|num }}</td>
+          <td><b>{{ o.supplier.name }}</b><div class="small faint">{{ o.supplier.completed_orders }} completed orders</div></td>
+          <td class="num">${{ '%.4f'|format(o.quote.landed_unit_usd or 0) }}</td>
+          <td class="num">{{ o.quote.item.moq_units|num }}</td>
+          <td class="num">{{ o.quote.item.max_units|num }}</td>
+          <td><div class="chips">{% for f in o.quote.flags if f.severity in ('review',) %}<span class="chip amber" data-tip="{{ f.detail }}">{{ f.label }}</span>{% else %}<span class="chip green">OK</span>{% endfor %}</div></td>
+          <td class="num"><input class="qty" name="qty:{{ o.buyer.id }}:{{ o.supplier.id }}:{{ o.quote.ref }}" value="{{ o.qty }}" inputmode="numeric" aria-label="Units for {{ o.buyer.name }} from {{ o.supplier.name }}"></td>
+        </tr>
+        {% endfor %}
+      </table>
+      <div class="small muted" style="margin-top: 6px;">Plan total {{ c.plan.total_usd|money }} landed. Prices use the demo FX rates and Incoterm uplifts in the policy.</div>
+      <div style="margin-top: 12px;">
+        <textarea name="note" placeholder="Note for the record (why you approved, changed or rejected)">{{ c.note }}</textarea>
+      </div>
+      <div class="form-row">
+        <button class="btn primary" name="action" value="approve" type="submit">Approve as planned</button>
+        <button class="btn" name="action" value="edit" type="submit">Approve with changes</button>
+        <button class="btn danger" name="action" value="reject" type="submit">Reject</button>
+        <span class="small muted" style="margin-left: auto;">Approving writes the PO drafts, award and regret notices to the outbox.</span>
+      </div>
+    </form>
+    {% else %}
+      {% if r.resolution and r.resolution.note %}<p class="small" style="margin: 12px 0 0;"><b>Reviewer note:</b> {{ r.resolution.note }}</p>{% endif %}
+      {% if c.resolved_plan and r.status != 'rejected' %}
+      <table class="split" style="margin-top: 10px;">
+        <tr><th>Buyer</th><th>Supplier</th><th class="num">Units</th><th class="num">Total</th></tr>
+        {% for a in c.resolved_plan.allocations %}
+        <tr><td>{{ deps.buyers[a.buyer_id].name }}</td><td>{{ deps.suppliers[a.supplier_id].name }}</td><td class="num">{{ a.quantity|num }}</td><td class="num">{{ a.total_usd|money }}</td></tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+      <div class="small muted" style="margin-top: 8px;">Decided {{ r.resolved_at|when }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

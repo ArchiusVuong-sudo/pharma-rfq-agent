@@ -31,8 +31,7 @@ class Tracer:
         self.run_id = run_id
 
     @asynccontextmanager
-    async def span(self, kind: str, name: str, parent: Span | None = None,
-                   **attrs: Any) -> AsyncIterator[Span]:
+    async def span(self, kind: str, name: str, parent: Span | None = None, **attrs: Any) -> AsyncIterator[Span]:
         span = Span(id=uuid.uuid4().hex[:12], attrs=dict(attrs))
         start = _ms()
         self.store.x(
@@ -43,7 +42,8 @@ class Tracer:
         try:
             yield span
         except BaseException as exc:
-            span.status = "error"
+            if span.status == "ok":  # keep a status the caller set, e.g. "waiting" on a graph interrupt
+                span.status = "error"
             span.attrs.setdefault("error", f"{type(exc).__name__}: {exc}"[:300])
             raise
         finally:
@@ -52,13 +52,30 @@ class Tracer:
                 (_ms(), span.status, json.dumps(span.attrs, default=str), span.id),
             )
 
-    def record(self, kind: str, name: str, parent: Span | None, start_ms: float, end_ms: float,
-               status: str = "ok", **attrs: Any) -> None:
+    def record(
+        self,
+        kind: str,
+        name: str,
+        parent: Span | None,
+        start_ms: float,
+        end_ms: float,
+        status: str = "ok",
+        **attrs: Any,
+    ) -> None:
         self.store.x(
             "INSERT INTO spans (id, run_id, parent_id, kind, name, start_ms, end_ms, status, attrs) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (uuid.uuid4().hex[:12], self.run_id, parent.id if parent else None, kind, name,
-             start_ms, end_ms, status, json.dumps(attrs, default=str)),
+            (
+                uuid.uuid4().hex[:12],
+                self.run_id,
+                parent.id if parent else None,
+                kind,
+                name,
+                start_ms,
+                end_ms,
+                status,
+                json.dumps(attrs, default=str),
+            ),
         )
 
     def llm_done(self, span: Span, response: LlmResponse, attempt: int) -> None:
@@ -78,6 +95,12 @@ class Tracer:
         for call in response.tool_calls:
             start = call.start_ms or _ms()
             self.record(
-                "tool", call.name, span, start, start + max(call.latency_ms, 1.0),
-                "error" if call.is_error else "ok", input=call.input, output=call.output[:600],
+                "tool",
+                call.name,
+                span,
+                start,
+                start + max(call.latency_ms, 1.0),
+                "error" if call.is_error else "ok",
+                input=call.input,
+                output=call.output[:600],
             )

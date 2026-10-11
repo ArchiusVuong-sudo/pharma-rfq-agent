@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from rfq_agent.llm.base import LlmProvider, LlmRequest
+from rfq_agent.llm.base import LlmError, LlmProvider, LlmRequest
 from rfq_agent.tracing import Span, Tracer
 
 MAX_DRAFTS = 2
@@ -59,9 +59,9 @@ def guard(draft: FollowUpDraft, missing_checks: list[str], max_words: int) -> Gu
         problems.append("contains an award or order promise")
     if AMOUNT_RE.search(text):
         problems.append("mentions a price or amount")
-    words = len(draft.body.split())
-    if words > max_words:
-        problems.append(f"{words} words, over the {max_words} word limit")
+    count = len(draft.body.split())
+    if count > max_words:
+        problems.append(f"{count} words, over the {max_words} word limit")
     return GuardResult(ok=not problems, problems=problems)
 
 
@@ -76,8 +76,9 @@ def template(contact: str, rfq_id: str, product: str, missing: list[str]) -> Fol
     )
 
 
-def follow_up_request(contact: str, supplier: str, rfq_id: str, product: str, missing: list[str],
-                      feedback: list[str] | None = None) -> LlmRequest:
+def follow_up_request(
+    contact: str, supplier: str, rfq_id: str, product: str, missing: list[str], feedback: list[str] | None = None
+) -> LlmRequest:
     prompt = (
         f"RFQ: {rfq_id}\nSupplier: {supplier}\nContact: {contact}\nProduct quoted: {product}\n"
         "Missing items to ask for:\n" + "\n".join(f"- {m}" for m in missing)
@@ -135,6 +136,9 @@ async def draft_follow_up(
                 result = guard(draft, missing_checks, max_words)
         except ValidationError:
             result = GuardResult(ok=False, problems=["output failed the schema check"])
+        except LlmError as exc:  # the model being down must not stop a follow-up: fall back to the template
+            notes.append(f"model unavailable ({type(exc).__name__}: {str(exc)[:120]})")
+            break
         if draft is not None and result.ok:
             notes.append(f"guard passed on draft {attempt}")
             return FollowUpResult(draft=draft, drafted_by="model", notes=notes)

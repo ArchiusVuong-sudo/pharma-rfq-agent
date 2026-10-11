@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from rfq_agent.models import CheckedQuote, LineDecision, LinePlan, Product, RfqLine, RuleHit, Route
+from rfq_agent.models import CheckedQuote, LineDecision, LinePlan, Product, RfqLine, Route, RuleHit
 from rfq_agent.policy import ROUTE_ORDER, Policy
+
+ROUTE_LABELS: dict[str, str] = {"act_alone": "Act alone", "review": "Needs review", "stop": "Blocked"}
 
 FLAG_RULES = {
     "new_supplier": "new_supplier",
@@ -49,7 +51,7 @@ def decide_line(
             rule_id = FLAG_RULES.get(flag.check)
             if rule_id:
                 who = (supplier_names or {}).get(q.supplier_id, q.supplier_id)
-                fire(rule_id, f"{who}: {flag.label.lower()} ({flag.detail})")
+                fire(rule_id, f"{who}: {flag.label} ({flag.detail})")
 
     route: Route = "act_alone"
     for h in hits:

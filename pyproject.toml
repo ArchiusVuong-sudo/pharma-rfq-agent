@@ -36,3 +36,34 @@ dev = [
     "ruff>=0.17.0",
     "types-pyyaml>=6.0.12.20260906",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = ["live: calls the real model (set LIVE=1)"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+packages = ["rfq_agent"]
+mypy_path = "src"
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["rapidfuzz.*"]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+
+[tool.ruff.lint.per-file-ignores]
+# Prompt text and schema descriptions are part of the recorded fixtures' keys: keep them verbatim.
+"src/rfq_agent/agent/extract.py" = ["E501"]
+"src/rfq_agent/models.py" = ["E501"]

@@ -59,11 +59,7 @@ def plan_line(
                 )
             if need:
                 unmet[buyer.id] = need
-        under_moq = [
-            q.ref
-            for q in quotes
-            if used.get(q.ref) and q.item.moq_units and used[q.ref] < q.item.moq_units
-        ]
+        under_moq = [q.ref for q in quotes if used.get(q.ref) and q.item.moq_units and used[q.ref] < q.item.moq_units]
         if not under_moq:
             return LinePlan(line_id=line.id, allocations=allocations, unmet=unmet)
         excluded.add(under_moq[0])

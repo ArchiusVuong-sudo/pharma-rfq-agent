@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Tamsin Trading\nSubject: BEST PRICE amoxicillin!!\n\nEmail body:\n<<<\nDEAR BUYER\n\nWE HAVE AMOXICILLIN 250MG DISPERSIBLE READY STOCK !!!\nPRICE USD ",
   "response": {
-    "cache_read_tokens": 6128,
-    "cost_usd": 0.0077586,
-    "input_tokens": 634,
-    "latency_ms": 5440.2,
+    "cache_read_tokens": 6130,
+    "cost_usd": 0.007721,
+    "input_tokens": 637,
+    "latency_ms": 5402.7,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -26,23 +26,23 @@
           "storage_condition": null
         }
       ],
-      "supplier_name": "TAMSIN TRADING",
+      "supplier_name": "Tamsin Trading",
       "unreadable_reason": null
     },
-    "output_tokens": 385,
-    "recorded_at": "2026-10-11T03:07:28Z",
+    "output_tokens": 380,
+    "recorded_at": "2026-10-11T03:19:37Z",
     "source": "live",
     "tool_calls": [
       {
         "input": {
           "limit": 5,
-          "query": "amoxicillin 250mg dispersible tablets"
+          "query": "amoxicillin 250mg dispersible"
         },
         "is_error": false,
-        "latency_ms": 0.31,
+        "latency_ms": 0.17,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-AMOX-250-DT\", \"name\": \"Amoxicillin 250 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}]",
-        "start_ms": 1791688045235.1438
+        "start_ms": 1791688774962.13
       }
     ],
     "transport_retries": 0

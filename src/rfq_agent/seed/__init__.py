@@ -282,9 +282,7 @@ DEMO_SUPPLIER_IDS = ("S-KES", "S-BRW", "S-CRV", "S-HAL", "S-TAM", "S-ORR")
 
 def _email(id: str, supplier_id: str, day: int, hour: int, subject: str) -> QuoteEmail:
     body = (EMAIL_DIR / f"{id}.txt").read_text(encoding="utf-8").strip()
-    return QuoteEmail(
-        id=id, supplier_id=supplier_id, received_at=_t(day, hour), subject=subject, body=body
-    )
+    return QuoteEmail(id=id, supplier_id=supplier_id, received_at=_t(day, hour), subject=subject, body=body)
 
 
 @cache

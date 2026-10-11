@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}RFQ Desk{% endblock %} - Pharma RFQ Agent</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e7c66'/%3E%3Cpath d='M9 16h14M16 9v14' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark">Rx</div>
+      <div><div class="brand-name">Pharma RFQ Agent</div><div class="brand-sub">Quote-to-award console</div></div>
+    </div>
+    <nav class="nav">
+      <a href="/" class="{{ 'on' if nav == 'rfqs' }}"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>RFQs</a>
+      <a href="/reviews" class="{{ 'on' if nav == 'reviews' }}"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg>Review queue{% if pending_reviews %}<span class="count">{{ pending_reviews }}</span>{% endif %}</a>
+      <a href="/outbox" class="{{ 'on' if nav == 'outbox' }}"><svg viewBox="0 0 24 24"><path d="M3 6l9 7 9-7"/><path d="M3 6h18v12H3z"/></svg>Outbox</a>
+      <a href="/runs" class="{{ 'on' if nav == 'runs' }}"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Runs</a>
+      <a href="/evals" class="{{ 'on' if nav == 'evals' }}"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/></svg>Evals</a>
+      <a href="/policy" class="{{ 'on' if nav == 'policy' }}"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h3"/></svg>Policy</a>
+    </nav>
+    <div class="side-foot">
+      Synthetic demo. All buyers, suppliers, prices and certificates are invented. Sends are simulated into the outbox.
+      <form method="post" action="/reset" onsubmit="return confirm('Clear all runs, reviews and outbox messages?')">
+        <button type="submit">Reset demo data</button>
+      </form>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <div class="crumbs">{% block crumbs %}<b>RFQs</b>{% endblock %}</div>
+      <div class="right">
+        <span class="badge synth" data-tip="Every buyer, supplier, price and certificate in this app is invented.">Synthetic data</span>
+        {% if llm_mode == 'live' %}
+        <span class="badge live" title="Claude Agent SDK on the local login"><span class="dot"></span>LLM: live &middot; {{ llm_model }}</span>
+        {% else %}
+        <span class="badge replay" title="Answers come from responses recorded on real live runs"><span class="dot"></span>Replay mode</span>
+        {% endif %}
+        <span class="badge">Demo date {{ as_of.strftime('%d %b %Y') }}</span>
+      </div>
+    </header>
+    <main class="content">
+      {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+      {% if flash_error %}<div class="flash err">{{ flash_error }}</div>{% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+</body>
+</html>

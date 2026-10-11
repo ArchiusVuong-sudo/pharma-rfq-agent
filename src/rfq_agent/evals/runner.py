@@ -125,8 +125,13 @@ def score_fields(expected: dict[str, Any], item: QuoteItem | None) -> tuple[int,
 
 async def run_case(case: EvalCase, provider: LlmProvider, policy: Policy) -> CaseResult:
     result = CaseResult(
-        id=case.id, title=case.title, rule=case.rule, expected_route=case.expected.route, route=None,
-        field_total=len(case.expected.fields), flags_expected=case.expected.flags,
+        id=case.id,
+        title=case.title,
+        rule=case.rule,
+        expected_route=case.expected.route,
+        route=None,
+        field_total=len(case.expected.fields),
+        flags_expected=case.expected.flags,
     )
     suppliers = suppliers_by_id()
     try:
@@ -142,10 +147,12 @@ async def run_case(case: EvalCase, provider: LlmProvider, policy: Policy) -> Cas
                 for d in case.demands
             ],
         )
-        rfq = Rfq(id=f"RFQ-EVAL-{case.id}", title=case.title, issued_on=AS_OF, closes_on=AS_OF,
-                  lines=[line], emails=[email])
-        ctx = CheckContext(as_of=AS_OF, policy=policy, rfq=rfq, products=catalog_by_id(),
-                           suppliers=suppliers, buyers=buyers_by_id())
+        rfq = Rfq(
+            id=f"RFQ-EVAL-{case.id}", title=case.title, issued_on=AS_OF, closes_on=AS_OF, lines=[line], emails=[email]
+        )
+        ctx = CheckContext(
+            as_of=AS_OF, policy=policy, rfq=rfq, products=catalog_by_id(), suppliers=suppliers, buyers=buyers_by_id()
+        )
         quotes = check_quotes(email, extracted.quote, ctx)
         item = next((i for i in extracted.quote.items if i.product_id == case.product_id), None)
         result.field_hits, result.field_misses = score_fields(case.expected.fields, item)
@@ -161,8 +168,9 @@ async def run_case(case: EvalCase, provider: LlmProvider, policy: Policy) -> Cas
     return result
 
 
-async def run_evals(provider: LlmProvider, policy: Policy, cases: list[EvalCase] | None = None,
-                    concurrency: int = 4) -> EvalReport:
+async def run_evals(
+    provider: LlmProvider, policy: Policy, cases: list[EvalCase] | None = None, concurrency: int = 4
+) -> EvalReport:
     cases = cases or load_cases()
     sem = asyncio.Semaphore(concurrency)
 

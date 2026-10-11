@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Policy{% endblock %}
+{% block crumbs %}<b>Policy</b>{% endblock %}
+{% block content %}
+{% set route_cls = {'act_alone': 'green', 'review': 'amber', 'stop': 'red'} %}
+<div class="page-head">
+  <div>
+    <h1>Autonomy policy</h1>
+    <div class="sub">One file decides where the agent acts alone and where a person steps in. The strictest route among the rules that fire wins. Every value is a demo setting, not regulatory guidance.</div>
+  </div>
+</div>
+<div class="grid-2">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>Line rules</h2></div>
+      <table>
+        <tr><th>Rule</th><th>Route</th><th>When it fires</th></tr>
+        {% for r in policy.rules %}
+        <tr><td class="mono">{{ r.id }}</td><td><span class="chip {{ route_cls[r.route] }}">{{ r.route|route_label }}</span></td><td>{{ r.description }}{% if r.limit_usd %} (limit {{ r.limit_usd|money }}){% endif %}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Check settings</h2></div>
+      <table>
+        <tr><td>GMP certificate expiring within</td><td class="num">{{ policy.checks.gmp_expiry_warn_days }} days</td></tr>
+        <tr><td>Shelf life left on arrival, at least</td><td class="num">{{ policy.checks.shelf_life_min_share_on_arrival|pct }}</td></tr>
+        <tr><td>Price far under reference, below</td><td class="num">{{ policy.checks.price_far_under_share|pct }} of reference</td></tr>
+        <tr><td>Price far over reference, above</td><td class="num">{{ policy.checks.price_far_over_share|pct }} of reference</td></tr>
+        <tr><td>New supplier, fewer completed orders than</td><td class="num">{{ policy.checks.new_supplier_min_orders }}</td></tr>
+        <tr><td>Supplier follow-ups</td><td class="num">{{ policy.follow_up.route|route_label }}, under {{ policy.follow_up.max_words }} words</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>policy.yaml</h2><span class="hint">loaded and validated at start</span></div>
+    <pre class="yaml">{{ raw }}</pre>
+  </div>
+</div>
+{% endblock %}

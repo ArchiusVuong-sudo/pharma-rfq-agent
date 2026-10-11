@@ -41,9 +41,8 @@ class ShortlistEntry(BaseModel):
     countries: list[str] = Field(default_factory=list)
 
 
-async def _lookup(line: RfqLine, suppliers: list[Supplier], buyers: dict[str, Buyer]) -> list[ShortlistEntry]:
-    if take_fault("registry_timeout"):
-        await asyncio.sleep(LOOKUP_TIMEOUT_S * 3)  # the lookup hangs; the timeout below cuts it off
+def eligible(line: RfqLine, suppliers: list[Supplier], buyers: dict[str, Buyer]) -> list[ShortlistEntry]:
+    """Registry suppliers registered for the line's product in at least one buyer country."""
     countries = {buyers[d.buyer_id].country for d in line.demands}
     out = []
     for s in suppliers:
@@ -53,6 +52,12 @@ async def _lookup(line: RfqLine, suppliers: list[Supplier], buyers: dict[str, Bu
         if served:
             out.append(ShortlistEntry(supplier_id=s.id, countries=served))
     return out
+
+
+async def _lookup(line: RfqLine, suppliers: list[Supplier], buyers: dict[str, Buyer]) -> list[ShortlistEntry]:
+    if take_fault("registry_timeout"):
+        await asyncio.sleep(LOOKUP_TIMEOUT_S * 3)  # the lookup hangs; the timeout below cuts it off
+    return eligible(line, suppliers, buyers)
 
 
 async def shortlist(

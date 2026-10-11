@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Halden Medical Supply\nSubject: Oxytocin quote with documents\n\nEmail body:\n<<<\nHi, oxytocin 10 IU/mL 1 mL ampoules at USD 0.28 per ampoule DAP.",
   "response": {
-    "cache_read_tokens": 5568,
-    "cost_usd": 0.009574299999999999,
-    "input_tokens": 1158,
-    "latency_ms": 5686.1,
+    "cache_read_tokens": 5994,
+    "cost_usd": 0.0079795,
+    "input_tokens": 738,
+    "latency_ms": 5889.2,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -30,7 +30,7 @@
       "unreadable_reason": null
     },
     "output_tokens": 369,
-    "recorded_at": "2026-10-11T03:07:29Z",
+    "recorded_at": "2026-10-11T03:19:11Z",
     "source": "live",
     "tool_calls": [
       {
@@ -39,10 +39,10 @@
           "query": "oxytocin 10 IU/mL 1 mL ampoule"
         },
         "is_error": false,
-        "latency_ms": 0.42,
+        "latency_ms": 0.23,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-OXY-10-AMP\", \"name\": \"Oxytocin 10 IU/mL 1 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": true, \"score\": 100.0}, {\"product_id\": \"P-MGSO4-50-AMP\", \"name\": \"Magnesium sulfate 50% 10 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": false, \"score\": 61.5}]",
-        "start_ms": 1791688046169.164
+        "start_ms": 1791688748460.4211
       }
     ],
     "transport_retries": 0

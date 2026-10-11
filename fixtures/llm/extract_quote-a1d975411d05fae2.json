@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Kestrel Generics\nSubject: Paracetamol clearance lot\n\nEmail body:\n<<<\nHello, paracetamol 500 mg tablets, USD 7.00 per 1,000 tablets FCA, MOQ 10",
   "response": {
-    "cache_read_tokens": 5533,
-    "cost_usd": 0.0084809,
-    "input_tokens": 997,
-    "latency_ms": 5085.1,
+    "cache_read_tokens": 5925,
+    "cost_usd": 0.0069873,
+    "input_tokens": 604,
+    "latency_ms": 5236.3,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -30,7 +30,7 @@
       "unreadable_reason": null
     },
     "output_tokens": 325,
-    "recorded_at": "2026-10-11T03:07:37Z",
+    "recorded_at": "2026-10-11T03:19:19Z",
     "source": "live",
     "tool_calls": [
       {
@@ -38,10 +38,10 @@
           "query": "paracetamol 500 mg tablets"
         },
         "is_error": false,
-        "latency_ms": 0.18,
+        "latency_ms": 0.2,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-PARA-500-TAB\", \"name\": \"Paracetamol 500 mg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}]",
-        "start_ms": 1791688055111.34
+        "start_ms": 1791688756996.6982
       }
     ],
     "transport_retries": 0

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Evals{% endblock %}
+{% block crumbs %}<b>Evals</b>{% endblock %}
+{% block content %}
+{% set route_cls = {'act_alone': 'green', 'review': 'amber', 'stop': 'red'} %}
+<div class="page-head">
+  <div>
+    <h1>Eval suite</h1>
+    <div class="sub">18 labelled synthetic cases: the 6 demo emails plus one or more per policy rule. Runs on recorded model outputs (replay), no login needed. The gate fails on any unsafe auto-approval.</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 16px;">
+  <form method="post" action="/evals/run" class="gate" onsubmit="this.querySelector('button').classList.add('busy')">
+    <input type="hidden" name="price_outlier" value="off">
+    <label class="toggle"><input type="checkbox" name="price_outlier" value="on" {% if not latest or 'price_outlier' not in latest.disabled_rules %}checked{% endif %}> Price-outlier guardrail</label>
+    <span class="small muted">Switch it off to see the gate catch quotes far from the reference price being awarded alone.</span>
+    <button class="btn primary" type="submit" style="margin-left: auto;"><span class="spinner"></span>Run evals (replay)</button>
+  </form>
+</div>
+
+{% if not latest %}
+<div class="card"><div class="empty">
+  <svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/></svg>
+  <b>No eval run yet</b>Click Run evals to score extraction, flags and routing on all 18 cases.
+</div></div>
+{% else %}
+<div class="card" style="margin-bottom: 16px;">
+  <div class="gate">
+    <div class="gate-badge {{ 'pass' if latest.passed else 'fail' }}">GATE {{ 'PASS' if latest.passed else 'FAIL' }}</div>
+    <div>
+      <div style="font-weight: 600;">{{ latest.unsafe_auto_approvals }} unsafe auto-approvals{% if latest.errors %}, {{ latest.errors }} errors{% endif %}</div>
+      <div class="small muted">Guardrails off: {{ latest.disabled_rules|join(', ') or 'none' }} &middot; mode {{ latest.mode }} &middot; {{ latest_row.ts|when }}</div>
+    </div>
+  </div>
+</div>
+<div class="metrics" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+  <div class="card metric"><span>Extraction field accuracy</span><b>{{ '%.1f'|format(latest.field_accuracy * 100) }}%</b><small>fields read correctly vs labels</small></div>
+  <div class="card metric"><span>Flag recall</span><b>{{ '%.1f'|format(latest.flag_recall * 100) }}%</b><small>expected checks that fired</small></div>
+  <div class="card metric"><span>Routing accuracy</span><b>{{ '%.1f'|format(latest.routing_accuracy * 100) }}%</b><small>act alone / review / stop</small></div>
+  <div class="card metric"><span>Unsafe auto-approvals</span><b style="color: {{ 'var(--red)' if latest.unsafe_auto_approvals else 'var(--green)' }};">{{ latest.unsafe_auto_approvals }}</b><small>must stay at zero</small></div>
+</div>
+<div class="card">
+  <div class="card-head"><h2>Cases</h2><span class="hint">red rows would award a risky quote with no person in the loop</span></div>
+  <table>
+    <tr><th>Case</th><th>What it covers</th><th>Expected</th><th>Agent</th><th>Rules fired</th><th class="num">Fields</th><th class="num">Flags</th></tr>
+    {% for c in latest.cases %}
+    <tr class="{{ 'hl' if c.unsafe }}">
+      <td class="mono">{{ c.id }}</td>
+      <td>{{ c.title }}<div class="small faint">{{ c.rule }}</div>{% if c.error %}<div class="small" style="color: var(--red);">{{ c.error }}</div>{% endif %}</td>
+      <td><span class="chip {{ route_cls[c.expected_route] }}">{{ c.expected_route|route_label }}</span></td>
+      <td>{% if c.route %}<span class="chip {{ route_cls[c.route] }}">{{ c.route|route_label }}</span>{% endif %}{% if c.unsafe %}<div class="small" style="color: var(--red); font-weight: 600; margin-top: 3px;">Unsafe auto-approval</div>{% endif %}</td>
+      <td class="small muted">{{ c.rules_fired|join(', ') or '-' }}</td>
+      <td class="num">{{ c.field_hits }}/{{ c.field_total }}</td>
+      <td class="num">{{ (c.flags_expected|select('in', c.flags_found)|list)|length }}/{{ c.flags_expected|length }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

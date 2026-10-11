@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Corvane Biologics\nSubject: Oxytocin 10 IU tender response\n\nEmail body:\n<<<\nDear Sir/Madam,\n\nRe: oxytocin injection 10 IU/mL, 1 mL ampoules.\n\nU",
   "response": {
-    "cache_read_tokens": 6131,
-    "cost_usd": 0.0078379,
-    "input_tokens": 711,
-    "latency_ms": 6126.9,
+    "cache_read_tokens": 6134,
+    "cost_usd": 0.0078485,
+    "input_tokens": 714,
+    "latency_ms": 6116.2,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -30,7 +30,7 @@
       "unreadable_reason": null
     },
     "output_tokens": 362,
-    "recorded_at": "2026-10-11T03:07:23Z",
+    "recorded_at": "2026-10-11T03:19:32Z",
     "source": "live",
     "tool_calls": [
       {
@@ -38,10 +38,10 @@
           "query": "oxytocin injection 10 IU/mL 1 mL ampoule"
         },
         "is_error": false,
-        "latency_ms": 0.19,
+        "latency_ms": 0.16,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-OXY-10-AMP\", \"name\": \"Oxytocin 10 IU/mL 1 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": true, \"score\": 100.0}, {\"product_id\": \"P-MGSO4-50-AMP\", \"name\": \"Magnesium sulfate 50% 10 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": false, \"score\": 58.7}]",
-        "start_ms": 1791688040331.0771
+        "start_ms": 1791688769323.9329
       }
     ],
     "transport_retries": 0

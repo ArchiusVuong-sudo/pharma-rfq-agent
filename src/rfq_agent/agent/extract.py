@@ -37,11 +37,7 @@ class ExtractResult:
 
 def extract_request(email: QuoteEmail, supplier: Supplier | None, feedback: str | None = None) -> LlmRequest:
     sender = supplier.name if supplier else "unknown sender"
-    prompt = (
-        f"Supplier on file: {sender}\n"
-        f"Subject: {email.subject}\n\n"
-        f"Email body:\n<<<\n{email.body}\n>>>"
-    )
+    prompt = f"Supplier on file: {sender}\nSubject: {email.subject}\n\nEmail body:\n<<<\n{email.body}\n>>>"
     if feedback:
         prompt += f"\n\nYour previous output was rejected by the schema check: {feedback}\nReturn a corrected output."
     return LlmRequest(
@@ -60,9 +56,7 @@ def _schema_errors(output: dict[str, object] | None) -> tuple[ExtractedQuote | N
     try:
         return ExtractedQuote.model_validate(output), None
     except ValidationError as exc:
-        return None, "; ".join(
-            f"{'.'.join(str(p) for p in e['loc'])}: {e['msg']}" for e in exc.errors()[:5]
-        )
+        return None, "; ".join(f"{'.'.join(str(p) for p in e['loc'])}: {e['msg']}" for e in exc.errors()[:5])
 
 
 async def extract_quote(

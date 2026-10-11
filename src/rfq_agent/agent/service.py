@@ -7,6 +7,7 @@ import json
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.types import Command
 
@@ -30,15 +31,22 @@ def make_deps(store: Store, provider: LlmProvider, policy: Policy | None = None)
     emails = {e.id: e for e in rfq.emails}
     emails.update({e.id: e for e in recorded_replies().values()})
     return Deps(
-        store=store, provider=provider, policy=policy or load_policy(), rfq=rfq,
-        products=catalog_by_id(), suppliers=suppliers_by_id(), buyers=buyers_by_id(),
-        emails=emails, as_of=AS_OF,
+        store=store,
+        provider=provider,
+        policy=policy or load_policy(),
+        rfq=rfq,
+        products=catalog_by_id(),
+        suppliers=suppliers_by_id(),
+        buyers=buyers_by_id(),
+        emails=emails,
+        as_of=AS_OF,
     )
 
 
 class AgentService:
-    def __init__(self, store: Store, provider: LlmProvider, checkpointer: BaseCheckpointSaver[Any],
-                 policy: Policy | None = None) -> None:
+    def __init__(
+        self, store: Store, provider: LlmProvider, checkpointer: BaseCheckpointSaver[Any], policy: Policy | None = None
+    ) -> None:
         self.store = store
         self.provider = provider
         self.deps = make_deps(store, provider, policy)
@@ -72,8 +80,11 @@ class AgentService:
             c.execute("DELETE FROM quotes WHERE rfq_id = ?", (rfq.id,))
             c.execute("DELETE FROM extractions WHERE rfq_id = ?", (rfq.id,))
         state: RunState = {
-            "run_id": new_id("RUN"), "rfq_id": rfq.id, "kind": "award",
-            "email_ids": [e.id for e in rfq.emails], "reply_to": {},
+            "run_id": new_id("RUN"),
+            "rfq_id": rfq.id,
+            "kind": "award",
+            "email_ids": [e.id for e in rfq.emails],
+            "reply_to": {},
             "line_ids": [ln.id for ln in rfq.lines],
         }
         return self._start(state, "award")
@@ -87,8 +98,11 @@ class AgentService:
         if not msg["line_id"]:
             raise ReviewError("The follow-up is not tied to an RFQ line")
         state: RunState = {
-            "run_id": new_id("RUN"), "rfq_id": self.rfq_id, "kind": "recheck",
-            "email_ids": [msg["reply_email_id"]], "reply_to": {msg["reply_email_id"]: msg["source_email_id"]},
+            "run_id": new_id("RUN"),
+            "rfq_id": self.rfq_id,
+            "kind": "recheck",
+            "email_ids": [msg["reply_email_id"]],
+            "reply_to": {msg["reply_email_id"]: msg["source_email_id"]},
             "line_ids": [msg["line_id"]],
         }
         run_id = self._start(state, "recheck", parent=msg["run_id"])
@@ -117,18 +131,23 @@ class AgentService:
             await task
 
     async def _drive(self, run_id: str, payload: Any) -> None:
-        config = {"configurable": {"thread_id": run_id}}
+        config: RunnableConfig = {"configurable": {"thread_id": run_id}}
         try:
-            await self.graph.ainvoke(payload, config)  # type: ignore[arg-type]
-            snap = await self.graph.aget_state(config)  # type: ignore[arg-type]
+            await self.graph.ainvoke(payload, config)
+            snap = await self.graph.aget_state(config)
             if snap.next:
                 self.store.update_run(run_id, status="waiting_review", active_ms=self._active_ms(run_id))
                 self.store.event(run_id, "review", "Paused for human review (checkpoint saved)", "warn")
             else:
                 self._finish(run_id)
         except Exception as exc:
-            self.store.update_run(run_id, status="failed", ended_at=now_iso(), error=f"{type(exc).__name__}: {exc}"[:400],
-                                  active_ms=self._active_ms(run_id))
+            self.store.update_run(
+                run_id,
+                status="failed",
+                ended_at=now_iso(),
+                error=f"{type(exc).__name__}: {exc}"[:400],
+                active_ms=self._active_ms(run_id),
+            )
             self.store.alert(run_id, "run_failed", f"Run failed: {type(exc).__name__}: {exc}"[:300], "error")
             self.store.event(run_id, "finish", f"Run failed: {type(exc).__name__}", "error")
 
@@ -148,16 +167,31 @@ class AgentService:
         run = self.store.one("SELECT * FROM runs WHERE id = ?", (run_id,))
         mon = self.deps.policy.monitoring
         if run and run["cost_usd"] > mon.run_cost_budget_usd:
-            self.store.alert(run_id, "cost_budget", f"Run cost ${run['cost_usd']:.3f} is over the "
-                             f"${mon.run_cost_budget_usd:.2f} budget (API-equivalent)", "warn", f"{run_id}-cost")
+            self.store.alert(
+                run_id,
+                "cost_budget",
+                f"Run cost ${run['cost_usd']:.3f} is over the ${mon.run_cost_budget_usd:.2f} budget (API-equivalent)",
+                "warn",
+                f"{run_id}-cost",
+            )
         if active / 1000 > mon.run_latency_budget_s:
-            self.store.alert(run_id, "latency_budget", f"Run took {active / 1000:.0f}s, over the "
-                             f"{mon.run_latency_budget_s:.0f}s budget", "warn", f"{run_id}-latency")
+            self.store.alert(
+                run_id,
+                "latency_budget",
+                f"Run took {active / 1000:.0f}s, over the {mon.run_latency_budget_s:.0f}s budget",
+                "warn",
+                f"{run_id}-latency",
+            )
 
     def sweep_alerts(self) -> None:
         """Alert on reviews pending past the SLA."""
         sla = self.deps.policy.monitoring.review_sla_minutes
         cutoff = (datetime.now(UTC) - timedelta(minutes=sla)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         for r in self.store.q("SELECT * FROM reviews WHERE status = 'pending' AND created_at < ?", (cutoff,)):
-            self.store.alert(r["run_id"], "review_sla", f"Review {r['id']} for line {r['line_id']} is pending "
-                             f"past the {sla} min SLA", "warn", f"{r['id']}-sla")
+            self.store.alert(
+                r["run_id"],
+                "review_sla",
+                f"Review {r['id']} for line {r['line_id']} is pending past the {sla} min SLA",
+                "warn",
+                f"{r['id']}-sla",
+            )

@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Pinecrest Pharma\nSubject: Magnesium sulfate injection\n\nEmail body:\n<<<\nDear team, magnesium sulphate 50% 10 mL ampoules: USD 0.42 per ampoule ",
   "response": {
-    "cache_read_tokens": 5547,
-    "cost_usd": 0.0091199,
-    "input_tokens": 1113,
-    "latency_ms": 6031.9,
+    "cache_read_tokens": 5950,
+    "cost_usd": 0.0075885,
+    "input_tokens": 710,
+    "latency_ms": 6065.9,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -30,7 +30,7 @@
       "unreadable_reason": null
     },
     "output_tokens": 342,
-    "recorded_at": "2026-10-11T03:07:43Z",
+    "recorded_at": "2026-10-11T03:19:25Z",
     "source": "live",
     "tool_calls": [
       {
@@ -38,10 +38,10 @@
           "query": "magnesium sulphate 50% 10 mL ampoules"
         },
         "is_error": false,
-        "latency_ms": 0.15,
+        "latency_ms": 0.19,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-MGSO4-50-AMP\", \"name\": \"Magnesium sulfate 50% 10 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": false, \"score\": 100.0}, {\"product_id\": \"P-OXY-10-AMP\", \"name\": \"Oxytocin 10 IU/mL 1 mL ampoule\", \"unit\": \"ampoule\", \"pack_sizes\": [10, 50], \"cold_chain\": true, \"score\": 60.6}]",
-        "start_ms": 1791688060753.48
+        "start_ms": 1791688762657.335
       }
     ],
     "transport_retries": 0

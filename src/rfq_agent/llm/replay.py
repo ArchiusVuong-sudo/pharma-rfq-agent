@@ -23,16 +23,24 @@ def fixture_path(request: LlmRequest, root: Path = FIXTURE_DIR) -> Path:
     return root / f"{request.fixture_key()}.json"
 
 
+def recorded_model(root: Path) -> str:
+    """The model the fixtures were recorded with, shown on replayed runs."""
+    for path in sorted(root.glob("*.json")):
+        try:
+            return f"{json.loads(path.read_text(encoding='utf-8'))['response']['model']} (recorded)"
+        except (OSError, KeyError, json.JSONDecodeError):
+            continue
+    return "recorded"
+
+
 class ReplayProvider:
     mode: Literal["live", "replay"] = "replay"
 
     def __init__(self, root: Path = FIXTURE_DIR, delay_scale: float | None = None) -> None:
         self.root = root
-        self.model = "replay"
+        self.model = recorded_model(root)
         # Replays wait a share of the recorded latency so the timeline streams like a live run.
-        self.delay_scale = (
-            float(os.environ.get("REPLAY_DELAY_SCALE", "0")) if delay_scale is None else delay_scale
-        )
+        self.delay_scale = float(os.environ.get("REPLAY_DELAY_SCALE", "0")) if delay_scale is None else delay_scale
 
     async def complete(self, request: LlmRequest) -> LlmResponse:
         path = fixture_path(request, self.root)
@@ -43,10 +51,10 @@ class ReplayProvider:
         start = time.perf_counter()
         data = json.loads(path.read_text(encoding="utf-8"))
         recorded = LlmResponse.model_validate(data["response"])
-        if self.delay_scale > 0:
-            await asyncio.sleep(min(recorded.latency_ms / 1000 * self.delay_scale, 8.0))
+        wait = min(recorded.latency_ms / 1000 * self.delay_scale, 8.0) if self.delay_scale > 0 else 0.0
+        await asyncio.sleep(wait / 2)
         calls = [await call_tool(c.name, c.input) for c in recorded.tool_calls]
-        self.model = recorded.model
+        await asyncio.sleep(wait / 2)
         return recorded.model_copy(
             update={
                 "tool_calls": calls,

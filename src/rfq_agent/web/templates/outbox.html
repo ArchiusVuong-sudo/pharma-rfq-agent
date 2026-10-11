@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Outbox{% endblock %}
+{% block crumbs %}<b>Outbox</b>{% endblock %}
+{% block content %}
+{% set kind_txt = {'po_draft': 'PO draft', 'award_notice': 'Award notice', 'regret_notice': 'Regret notice', 'follow_up': 'Supplier follow-up'} %}
+{% set kind_cls = {'po_draft': 'green', 'award_notice': 'green', 'regret_notice': 'gray', 'follow_up': 'blue'} %}
+<div class="page-head">
+  <div>
+    <h1>Outbox</h1>
+    <div class="sub">Everything the agent sent, as simulated sends. PO drafts and notices are written by code from the approved plan; follow-ups are drafted by the model and checked by a guard.</div>
+  </div>
+  <div class="actions tabs" id="tabs">
+    <button type="button" class="on" data-k="">All {{ messages|length }}</button>
+    <button type="button" data-k="follow_up">Follow-ups</button>
+    <button type="button" data-k="po_draft">PO drafts</button>
+    <button type="button" data-k="award_notice">Awards</button>
+    <button type="button" data-k="regret_notice">Regrets</button>
+  </div>
+</div>
+
+<div class="card">
+  {% for m in messages %}{% set s = deps.suppliers[m.supplier_id] %}
+  <div class="msg" data-kind="{{ m.kind }}">
+    <div>
+      <div class="chips" style="margin-bottom: 6px;">
+        <span class="chip {{ kind_cls[m.kind] }}">{{ kind_txt[m.kind] }}</span>
+        {% if m.drafted_by == 'model' %}<span class="chip violet" data-tip="{{ m.guard_notes|join('; ') }}">Drafted by the model, guard passed</span>
+        {% elif m.drafted_by == 'template' %}<span class="chip amber" data-tip="{{ m.guard_notes|join('; ') }}">Fixed template</span>
+        {% else %}<span class="chip gray">Written by code</span>{% endif %}
+        <span class="chip gray">Simulated send</span>
+      </div>
+      <div class="subject">{{ m.subject }}</div>
+      <div class="small muted">To {{ s.contact_name }}, {{ s.name }} &middot; {{ m.created_at|when }} &middot; run <a class="mono" href="/runs/{{ m.run_id }}">{{ m.run_id }}</a></div>
+    </div>
+    <div>
+      {% if m.reply_email_id and not m.reply_simulated %}
+      <form method="post" action="/outbox/{{ m.id }}/reply" onsubmit="this.querySelector('button').classList.add('busy')">
+        <button class="btn small primary" type="submit"><span class="spinner"></span>Simulate reply</button>
+      </form>
+      {% elif m.reply_simulated %}<span class="chip green">Supplier replied, re-checked</span>{% endif %}
+    </div>
+    <pre>{{ m.body }}</pre>
+  </div>
+  {% else %}
+  <div class="empty">
+    <svg viewBox="0 0 24 24"><path d="M3 6l9 7 9-7"/><path d="M3 6h18v12H3z"/></svg>
+    <b>Outbox is empty</b>Run the agent on the RFQ: awards it can make alone and supplier follow-ups land here.
+  </div>
+  {% endfor %}
+</div>
+<script>
+  document.querySelectorAll('#tabs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      document.querySelectorAll('.msg').forEach(function (m) {
+        m.style.display = !b.dataset.k || m.dataset.kind === b.dataset.k ? '' : 'none';
+      });
+    });
+  });
+</script>
+{% endblock %}

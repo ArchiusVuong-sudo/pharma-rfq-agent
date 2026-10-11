@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Runs{% endblock %}
+{% block crumbs %}<b>Runs</b>{% endblock %}
+{% block content %}
+{% set rc = {'running': 'blue', 'done': 'green', 'waiting_review': 'amber', 'failed': 'red', 'superseded': 'gray'} %}
+<div class="page-head">
+  <div>
+    <h1>Runs and monitoring</h1>
+    <div class="sub">Every run is traced. Budgets: ${{ '%.2f'|format(monitoring.run_cost_budget_usd) }} API-equivalent and {{ monitoring.run_latency_budget_s|int }} s active time per run (demo settings).</div>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="card metric"><span>Runs</span><b>{{ metrics.runs }}</b><small>{{ metrics.line_decisions }} line decisions</small></div>
+  <div class="card metric"><span>Act alone</span><b style="color: var(--green);">{{ metrics.act_alone|pct }}</b><small>of line decisions</small></div>
+  <div class="card metric"><span>Sent to review</span><b style="color: var(--amber);">{{ metrics.review|pct }}</b><small>of line decisions</small></div>
+  <div class="card metric"><span>Blocked</span><b style="color: var(--red);">{{ metrics.stop|pct }}</b><small>of line decisions</small></div>
+  <div class="card metric"><span>Latency p50 / p95</span><b>{{ '%.1f'|format(metrics.p50) }} / {{ '%.1f'|format(metrics.p95) }} s</b><small>active time, review wait excluded</small></div>
+  <div class="card metric"><span>Cost per RFQ run</span><b>${{ '%.3f'|format(metrics.cost_per_rfq) }}</b><small>API-equivalent, {{ metrics.tokens|num }} tokens total</small></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-head"><h2>Runs</h2><span class="hint">open one for its trace waterfall</span></div>
+    {% if runs %}
+    <table>
+      <tr><th>Run</th><th>Kind</th><th>Status</th><th>LLM</th><th class="num">Model calls</th><th class="num">Active</th><th class="num">Cost</th><th>Started</th></tr>
+      {% for r in runs %}
+      <tr>
+        <td><a class="mono" href="/runs/{{ r.id }}">{{ r.id }}</a></td>
+        <td>{{ r.kind }}</td>
+        <td><span class="chip {{ rc.get(r.status, 'gray') }}">{{ r.status.replace('_', ' ') }}</span></td>
+        <td class="small">{{ r.mode }}<div class="faint">{{ r.model }}</div></td>
+        <td class="num">{{ r.llm_calls }}</td>
+        <td class="num">{{ r.active_ms|ms }}</td>
+        <td class="num">${{ '%.3f'|format(r.cost_usd) }}</td>
+        <td class="small muted nowrap">{{ r.started_at|when }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><b>No runs yet</b>Run the agent on the RFQ to see traces and metrics.</div>
+    {% endif %}
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Alerts</h2><span class="hint">{{ alerts|length }}</span></div>
+    {% for a in alerts %}
+    <div style="padding: 11px 16px; border-bottom: 1px solid var(--line-soft);">
+      <div class="chips"><span class="chip {{ 'red' if a.severity == 'error' else 'amber' }}">{{ a.kind.replace('_', ' ') }}</span><span class="small faint">{{ a.ts|when }}</span></div>
+      <div class="small" style="margin-top: 5px;">{{ a.message }}</div>
+      {% if a.run_id %}<a class="small mono" href="/runs/{{ a.run_id }}">{{ a.run_id }}</a>{% endif %}
+    </div>
+    {% else %}
+    <div class="empty"><b>No alerts</b>Schema retries, tool errors, budget breaches and late reviews show here.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

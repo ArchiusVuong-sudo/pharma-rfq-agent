@@ -1,0 +1,22 @@
+{
+  "key": "draft_follow_up-b133bfc1f659cb8f",
+  "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
+  "prompt_preview": "RFQ: RFQ-SYN-0107\nSupplier: Orrin Distribution\nContact: Nadia Lindqvist\nProduct quoted: your offer\nMissing items to ask for:\n- a readable quote in the email bod",
+  "response": {
+    "cache_read_tokens": 649,
+    "cost_usd": 0.0072204999999999995,
+    "input_tokens": 731,
+    "latency_ms": 7336.1,
+    "model": "claude-sonnet-5-5",
+    "output": {
+      "body": "Dear Nadia,\n\nThank you for your offer regarding RFQ-SYN-0107.\n\nCould you please resend your quote written directly in the body of the email, so it is easy to read? Please include:\n\n- Product\n- Price\n- Currency\n- Pack basis\n\nThank you for your help.\n\nKind regards,\nProcurement team",
+      "subject": "RFQ-SYN-0107: Quote details requested"
+    },
+    "output_tokens": 403,
+    "recorded_at": "2026-10-11T03:19:45Z",
+    "source": "live",
+    "tool_calls": [],
+    "transport_retries": 0
+  },
+  "task": "draft_follow_up"
+}

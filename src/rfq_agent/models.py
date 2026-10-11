@@ -121,9 +121,7 @@ class QuoteItem(BaseModel):
     moq_units: int | None = Field(description="Minimum order in units, null if not stated")
     max_units: int | None = Field(description="Most units the supplier can supply, null if not stated")
     lead_time_days: int | None = Field(description="Lead time in days, null if not stated")
-    shelf_life_months: int | None = Field(
-        description="Remaining shelf life at dispatch in months, null if not stated"
-    )
+    shelf_life_months: int | None = Field(description="Remaining shelf life at dispatch in months, null if not stated")
     coa_provided: bool | None = Field(
         description="True if a certificate of analysis is attached or included, false if said missing, null if not mentioned"
     )
@@ -172,9 +170,7 @@ class CheckedQuote(BaseModel):
 
     @property
     def usable(self) -> bool:
-        return self.line_id is not None and not any(
-            f.severity in (Severity.BLOCK, Severity.HOLD) for f in self.flags
-        )
+        return self.line_id is not None and not any(f.severity in (Severity.BLOCK, Severity.HOLD) for f in self.flags)
 
     @property
     def missing_items(self) -> list[str]:

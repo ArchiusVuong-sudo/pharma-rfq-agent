@@ -21,7 +21,7 @@ from rfq_agent.agent.extract import extract_quote
 from rfq_agent.agent.followup import draft_follow_up
 from rfq_agent.agent.registry import shortlist
 from rfq_agent.checks import CheckContext, apply_prices, check_email, merge_reply
-from rfq_agent.gate import decide_line
+from rfq_agent.gate import ROUTE_LABELS, decide_line
 from rfq_agent.llm.base import LlmProvider
 from rfq_agent.models import (
     Allocation,
@@ -73,8 +73,12 @@ class Deps:
 
     def ctx(self) -> CheckContext:
         return CheckContext(
-            as_of=self.as_of, policy=self.policy, rfq=self.rfq, products=self.products,
-            suppliers=self.suppliers, buyers=self.buyers,
+            as_of=self.as_of,
+            policy=self.policy,
+            rfq=self.rfq,
+            products=self.products,
+            suppliers=self.suppliers,
+            buyers=self.buyers,
         )
 
     def line(self, line_id: str) -> RfqLine:
@@ -129,11 +133,25 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
                 raise
             for err in errors:
                 store.event(run_id, "shortlist", f"Registry lookup retried: {err}", "warn")
-                store.alert(run_id, "tool_error", f"Tool error on {product.name}: {err}; recovered on retry",
-                            "warn", dedupe_key=f"{run_id}-registry-{line_id}")
-            tracer.record("tool", "registry_lookup", span, start, tracer_now(),
-                          "retry" if errors else "ok", line=line_id, attempts=len(errors) + 1,
-                          errors=errors, found=[e.supplier_id for e in entries])
+                store.alert(
+                    run_id,
+                    "tool_error",
+                    f"Tool error on {product.name}: {err}; recovered on retry",
+                    "warn",
+                    dedupe_key=f"{run_id}-registry-{line_id}",
+                )
+            tracer.record(
+                "tool",
+                "registry_lookup",
+                span,
+                start,
+                tracer_now(),
+                "retry" if errors else "ok",
+                line=line_id,
+                attempts=len(errors) + 1,
+                errors=errors,
+                found=[e.supplier_id for e in entries],
+            )
             out[line_id] = [e.model_dump() for e in entries]
             names = ", ".join(deps.suppliers[e.supplier_id].name for e in entries) or "none"
             store.event(run_id, "shortlist", f"{product.name}: {len(entries)} registry suppliers can serve ({names})")
@@ -151,18 +169,29 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
             store.event(run_id, "read_quotes", f"Reading {email_id} from {name}")
             result = await extract_quote(email, supplier, deps.provider, tracer, span)
             if result.attempts > 1:
-                store.alert(run_id, "schema_retry", f"{email_id}: model output failed the schema check, retried",
-                            "warn", dedupe_key=f"{run_id}-schema-{email_id}")
+                store.alert(
+                    run_id,
+                    "schema_retry",
+                    f"{email_id}: model output failed the schema check, retried",
+                    "warn",
+                    dedupe_key=f"{run_id}-schema-{email_id}",
+                )
             quote = result.quote
             tools = sum(len(r.tool_calls) for r in result.responses)
             if quote.items:
-                store.event(run_id, "read_quotes",
-                            f"{email_id}: read {len(quote.items)} item(s) with {tools} search_catalog call(s)",
-                            data={"items": [i.product_text for i in quote.items]})
+                store.event(
+                    run_id,
+                    "read_quotes",
+                    f"{email_id}: read {len(quote.items)} item(s) with {tools} search_catalog call(s)",
+                    data={"items": [i.product_text for i in quote.items]},
+                )
             else:
-                store.event(run_id, "read_quotes",
-                            f"{email_id}: could not read a price, follow-up queued ({quote.unreadable_reason})",
-                            "warn")
+                store.event(
+                    run_id,
+                    "read_quotes",
+                    f"{email_id}: could not read a price, follow-up queued ({quote.unreadable_reason})",
+                    "warn",
+                )
             original = reply_to.get(email_id)
             if original:
                 before = store.extraction(rfq_id, original)
@@ -191,7 +220,8 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
             for q in checked:
                 blocking = [f.label for f in q.flags if f.severity in (Severity.BLOCK, Severity.HOLD)]
                 store.event(
-                    run_id, "compliance",
+                    run_id,
+                    "compliance",
                     f"{deps.suppliers[q.supplier_id].name} / {q.item.product_text}: "
                     + (", ".join(blocking) if blocking else "passes registry, GMP, registration and document checks"),
                     "warn" if blocking else "info",
@@ -199,7 +229,8 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
         # Quotes from earlier runs on the same lines stay in play (a re-check reads only the reply).
         read = set(state["extractions"])
         kept = [
-            CheckedQuote.model_validate(q) for q in store.quotes(rfq_id)
+            CheckedQuote.model_validate(q)
+            for q in store.quotes(rfq_id)
             if q["email_id"] not in read and q.get("line_id") in state["line_ids"]
         ]
         return {"quotes": [q.model_dump(mode="json") for q in kept + fresh]}
@@ -214,7 +245,8 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
             if q.landed_unit_usd is not None:
                 outlier = [f.label for f in q.flags if f.check.startswith("price_far")]
                 store.event(
-                    run_id, "price",
+                    run_id,
+                    "price",
                     f"{deps.suppliers[q.supplier_id].name}: ${q.landed_unit_usd:.4f} landed per unit"
                     + (f" - {outlier[0]}" if outlier else ""),
                     "warn" if outlier else "info",
@@ -232,10 +264,13 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
             line = deps.line(line_id)
             plan = plan_line(line, quotes, deps.suppliers, deps.buyers)
             plans[line_id] = plan.model_dump(mode="json")
-            split = "; ".join(
-                f"{deps.buyers[a.buyer_id].country} {a.quantity:,} from {deps.suppliers[a.supplier_id].name}"
-                for a in plan.allocations
-            ) or "no compliant supplier"
+            split = (
+                "; ".join(
+                    f"{deps.buyers[a.buyer_id].country} {a.quantity:,} from {deps.suppliers[a.supplier_id].name}"
+                    for a in plan.allocations
+                )
+                or "no compliant supplier"
+            )
             store.event(run_id, "plan", f"{deps.products[line.product_id].name}: {split} (${plan.total_usd:,.0f})")
         return {"plans": plans}
 
@@ -247,14 +282,25 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
         for line_id in state["line_ids"]:
             line = deps.line(line_id)
             plan = LinePlan.model_validate(state["plans"][line_id])
-            decision = decide_line(line, plan, [q for q in quotes if q.line_id == line_id],
-                                   deps.products[line.product_id], deps.policy, deps.names())
+            decision = decide_line(
+                line,
+                plan,
+                [q for q in quotes if q.line_id == line_id],
+                deps.products[line.product_id],
+                deps.policy,
+                deps.names(),
+            )
             decisions[line_id] = decision.model_dump(mode="json")
             status = {"act_alone": "acting", "review": "review", "stop": "blocked"}[decision.route]
             store.set_line(rfq_id, line_id, status, run_id, plan.model_dump(mode="json"), decisions[line_id])
             rules = ", ".join(h.rule for h in decision.rules_fired) or "no rule fired"
-            store.event(run_id, "gate", f"{deps.products[line.product_id].name}: {decision.route} ({rules})",
-                        "warn" if decision.route != "act_alone" else "info")
+            store.event(
+                run_id,
+                "gate",
+                f"{deps.products[line.product_id].name}: {ROUTE_LABELS[decision.route]} ({rules})",
+                "warn" if decision.route != "act_alone" else "info",
+                data={"line_id": line_id, "route": decision.route},
+            )
         return {"decisions": decisions}
 
     # ------------------------------------------------------------ 7. supplier follow-ups (LLM + guard)
@@ -275,22 +321,50 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
             product_id = qs[0].item.product_id
             product = deps.products[product_id].name if product_id else "your offer"
             result = await draft_follow_up(
-                contact=supplier.contact_name, supplier=supplier.name, rfq_id=rfq_id, product=product,
-                missing_checks=checks, missing_items=missing, provider=deps.provider,
-                max_words=deps.policy.follow_up.max_words, tracer=tracer, parent=span,
+                contact=supplier.contact_name,
+                supplier=supplier.name,
+                rfq_id=rfq_id,
+                product=product,
+                missing_checks=checks,
+                missing_items=missing,
+                provider=deps.provider,
+                max_words=deps.policy.follow_up.max_words,
+                tracer=tracer,
+                parent=span,
             )
             msg_id = f"{run_id}-FU-{email_id}"
-            store.add_outbox({
-                "id": msg_id, "run_id": run_id, "rfq_id": rfq_id, "line_id": qs[0].line_id,
-                "kind": "follow_up", "supplier_id": supplier.id, "subject": result.draft.subject,
-                "body": result.draft.body, "drafted_by": result.drafted_by, "guard_notes": result.notes,
-                "reply_email_id": deps_reply_for(supplier.id, email_id), "source_email_id": email_id,
-            })
+            store.add_outbox(
+                {
+                    "id": msg_id,
+                    "run_id": run_id,
+                    "rfq_id": rfq_id,
+                    "line_id": qs[0].line_id,
+                    "kind": "follow_up",
+                    "supplier_id": supplier.id,
+                    "subject": result.draft.subject,
+                    "body": result.draft.body,
+                    "drafted_by": result.drafted_by,
+                    "guard_notes": result.notes,
+                    "reply_email_id": deps_reply_for(supplier.id, email_id),
+                    "source_email_id": email_id,
+                }
+            )
             sent.append(msg_id)
-            store.event(run_id, "follow_up",
-                        f"Follow-up to {supplier.name} asking for {len(missing)} item(s), "
-                        f"{'drafted by the model, guard passed' if result.drafted_by == 'model' else 'template'}"
-                        " - sent alone (simulated)")
+            if result.drafted_by == "template":
+                store.alert(
+                    run_id,
+                    "follow_up_template",
+                    f"Follow-up to {supplier.name} fell back to the template: {'; '.join(result.notes)}"[:300],
+                    "warn",
+                    dedupe_key=f"{msg_id}-template",
+                )
+            store.event(
+                run_id,
+                "follow_up",
+                f"Follow-up to {supplier.name} asking for {len(missing)} item(s), "
+                f"{'drafted by the model, guard passed' if result.drafted_by == 'model' else 'template'}"
+                " - sent alone (simulated)",
+            )
 
         def deps_reply_for(supplier_id: str, email_id: str) -> str | None:
             replies = {e.supplier_id: e for e in deps.emails.values() if e.id.startswith("R")}
@@ -306,23 +380,49 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
         product = deps.products[line.product_id]
         n = 0
         for sid, subject, body in documents.po_drafts(deps.rfq, line, plan, product, deps.suppliers, deps.buyers):
-            store.add_outbox({"id": f"{run_id}-PO-{line_id}-{sid}", "run_id": run_id, "rfq_id": rfq_id,
-                              "line_id": line_id, "kind": "po_draft", "supplier_id": sid, "subject": subject,
-                              "body": body, "drafted_by": "code"})
-            store.add_outbox({"id": f"{run_id}-AW-{line_id}-{sid}", "run_id": run_id, "rfq_id": rfq_id,
-                              "line_id": line_id, "kind": "award_notice", "supplier_id": sid,
-                              "subject": f"Award: {product.name} on {rfq_id}",
-                              "body": documents.award_notice(deps.rfq, line, plan, product, deps.suppliers[sid]),
-                              "drafted_by": "code"})
+            store.add_outbox(
+                {
+                    "id": f"{run_id}-PO-{line_id}-{sid}",
+                    "run_id": run_id,
+                    "rfq_id": rfq_id,
+                    "line_id": line_id,
+                    "kind": "po_draft",
+                    "supplier_id": sid,
+                    "subject": subject,
+                    "body": body,
+                    "drafted_by": "code",
+                }
+            )
+            store.add_outbox(
+                {
+                    "id": f"{run_id}-AW-{line_id}-{sid}",
+                    "run_id": run_id,
+                    "rfq_id": rfq_id,
+                    "line_id": line_id,
+                    "kind": "award_notice",
+                    "supplier_id": sid,
+                    "subject": f"Award: {product.name} on {rfq_id}",
+                    "body": documents.award_notice(deps.rfq, line, plan, product, deps.suppliers[sid]),
+                    "drafted_by": "code",
+                }
+            )
             n += 2
         awarded = {a.supplier_id for a in plan.allocations if a.quantity}
         regret = {q.supplier_id for q in quotes if q.line_id == line_id and q.usable} - awarded
         for sid in sorted(regret):
-            store.add_outbox({"id": f"{run_id}-RG-{line_id}-{sid}", "run_id": run_id, "rfq_id": rfq_id,
-                              "line_id": line_id, "kind": "regret_notice", "supplier_id": sid,
-                              "subject": f"{rfq_id}: {product.name} outcome",
-                              "body": documents.regret_notice(deps.rfq, product, deps.suppliers[sid]),
-                              "drafted_by": "code"})
+            store.add_outbox(
+                {
+                    "id": f"{run_id}-RG-{line_id}-{sid}",
+                    "run_id": run_id,
+                    "rfq_id": rfq_id,
+                    "line_id": line_id,
+                    "kind": "regret_notice",
+                    "supplier_id": sid,
+                    "subject": f"{rfq_id}: {product.name} outcome",
+                    "body": documents.regret_notice(deps.rfq, product, deps.suppliers[sid]),
+                    "drafted_by": "code",
+                }
+            )
             n += 1
         return n
 
@@ -334,10 +434,15 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
                 continue
             plan = LinePlan.model_validate(state["plans"][line_id])
             n = write_award(run_id, rfq_id, line_id, plan, quotes)
-            store.set_line(rfq_id, line_id, "awarded", run_id, plan.model_dump(mode="json"), d,
-                           note="Awarded by the agent alone")
-            store.event(run_id, "act", f"{deps.products[deps.line(line_id).product_id].name}: awarded alone, "
-                                       f"{n} documents in the outbox (simulated sends)")
+            store.set_line(
+                rfq_id, line_id, "awarded", run_id, plan.model_dump(mode="json"), d, note="Awarded by the agent alone"
+            )
+            store.event(
+                run_id,
+                "act",
+                f"{deps.products[deps.line(line_id).product_id].name}: awarded alone, "
+                f"{n} documents in the outbox (simulated sends)",
+            )
         return {}
 
     # ------------------------------------------------------------ 9. human review (interrupt / resume)
@@ -351,8 +456,11 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
             line = deps.line(line_id)
             plan = LinePlan.model_validate(state["plans"][line_id])
             line_quotes = [q for q in quotes if q.line_id == line_id]
-            payload = {"plan": plan.model_dump(mode="json"), "decision": d,
-                       "quotes": [q.model_dump(mode="json") for q in line_quotes]}
+            payload = {
+                "plan": plan.model_dump(mode="json"),
+                "decision": d,
+                "quotes": [q.model_dump(mode="json") for q in line_quotes],
+            }
             review_id = store.open_review(run_id, rfq_id, line_id, payload)
             errors: list[str] = []
             while True:
@@ -360,43 +468,78 @@ def build_graph(deps: Deps) -> StateGraph[RunState]:
                 action = answer.get("action")
                 note = str(answer.get("note") or "")[:500]
                 if action == "edit":
-                    edited = LinePlan(line_id=line_id, allocations=[
-                        Allocation.model_validate(a) for a in answer.get("allocations", [])
-                    ])
+                    edited = LinePlan(
+                        line_id=line_id,
+                        allocations=[Allocation.model_validate(a) for a in answer.get("allocations", [])],
+                    )
                     by_ref = {q.ref: q for q in line_quotes}
                     edited.allocations = [
                         a.model_copy(update={"landed_unit_usd": by_ref[a.quote_ref].landed_unit_usd or 0.0})
-                        if a.quote_ref in by_ref else a
-                        for a in edited.allocations if a.quantity
+                        if a.quote_ref in by_ref
+                        else a
+                        for a in edited.allocations
+                        if a.quantity
                     ]
                     covered: dict[str, int] = {}
                     for a in edited.allocations:
                         covered[a.buyer_id] = covered.get(a.buyer_id, 0) + a.quantity
-                    edited.unmet = {dm.buyer_id: dm.quantity - covered.get(dm.buyer_id, 0)
-                                    for dm in line.demands if covered.get(dm.buyer_id, 0) < dm.quantity}
+                    edited.unmet = {
+                        dm.buyer_id: dm.quantity - covered.get(dm.buyer_id, 0)
+                        for dm in line.demands
+                        if covered.get(dm.buyer_id, 0) < dm.quantity
+                    }
                     errors = validate_plan(edited, line, line_quotes, deps.suppliers, deps.buyers)
                     if errors:
-                        store.x("UPDATE reviews SET error = ? WHERE id = ?", (json.dumps(errors), review_id))
-                        store.event(run_id, "review", f"Edited split rejected by the re-check: {'; '.join(errors)}",
-                                    "warn")
+                        store.x(
+                            "UPDATE reviews SET error = ? WHERE id = ?",
+                            (
+                                json.dumps({"errors": errors, "attempt": answer.get("allocations", []), "note": note}),
+                                review_id,
+                            ),
+                        )
+                        store.event(
+                            run_id, "review", f"Edited split rejected by the re-check: {'; '.join(errors)}", "warn"
+                        )
                         continue
                     plan = edited
                 break
             resolved = {"action": action, "note": note, "plan": plan.model_dump(mode="json")}
             reviewed[line_id] = resolved
             status = {"approve": "approved", "edit": "changes", "reject": "rejected"}.get(str(action), "rejected")
-            store.x("UPDATE reviews SET status = ?, resolved_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'), "
-                    "resolution = ?, error = NULL WHERE id = ?", (status, json.dumps(resolved), review_id))
+            store.x(
+                "UPDATE reviews SET status = ?, resolved_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'), "
+                "resolution = ?, error = NULL WHERE id = ?",
+                (status, json.dumps(resolved), review_id),
+            )
             product = deps.products[line.product_id].name
             if action in ("approve", "edit"):
                 n = write_award(run_id, rfq_id, line_id, plan, quotes)
-                store.set_line(rfq_id, line_id, "awarded", run_id, plan.model_dump(mode="json"), d,
-                               note=f"Approved by a person{' with changes' if action == 'edit' else ''}: {note}")
-                store.event(run_id, "review", f"{product}: approved{' with changes' if action == 'edit' else ''}, "
-                                              f"plan re-checked, {n} documents in the outbox")
+                store.set_line(
+                    rfq_id,
+                    line_id,
+                    "awarded",
+                    run_id,
+                    plan.model_dump(mode="json"),
+                    d,
+                    note=f"Approved by a person{' with changes' if action == 'edit' else ''}"
+                    + (f": {note}" if note else ""),
+                )
+                store.event(
+                    run_id,
+                    "review",
+                    f"{product}: approved{' with changes' if action == 'edit' else ''}, "
+                    f"plan re-checked, {n} documents in the outbox",
+                )
             else:
-                store.set_line(rfq_id, line_id, "rejected", run_id, plan.model_dump(mode="json"), d,
-                               note=f"Rejected by a person: {note}")
+                store.set_line(
+                    rfq_id,
+                    line_id,
+                    "rejected",
+                    run_id,
+                    plan.model_dump(mode="json"),
+                    d,
+                    note="Rejected by a person" + (f": {note}" if note else ""),
+                )
                 store.event(run_id, "review", f"{product}: rejected by the reviewer, nothing sent", "warn")
         return {"reviewed": reviewed}
 

@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Kestrel Generics\nSubject: Paracetamol 500 offer\n\nEmail body:\n<<<\nHello, for paracetamol 500mg tablets we offer USD 6.50 per 1,000 tablets FOB.",
   "response": {
-    "cache_read_tokens": 5555,
-    "cost_usd": 0.008549399999999999,
-    "input_tokens": 1015,
-    "latency_ms": 5160.7,
+    "cache_read_tokens": 5968,
+    "cost_usd": 0.007004,
+    "input_tokens": 608,
+    "latency_ms": 5432.3,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -30,7 +30,7 @@
       "unreadable_reason": null
     },
     "output_tokens": 324,
-    "recorded_at": "2026-10-11T03:07:28Z",
+    "recorded_at": "2026-10-11T03:19:10Z",
     "source": "live",
     "tool_calls": [
       {
@@ -41,7 +41,7 @@
         "latency_ms": 0.2,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-PARA-500-TAB\", \"name\": \"Paracetamol 500 mg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}]",
-        "start_ms": 1791688045956.5461
+        "start_ms": 1791688747774.025
       }
     ],
     "transport_retries": 0

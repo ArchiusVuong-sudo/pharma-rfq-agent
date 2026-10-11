@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ rfq.id }}{% endblock %}
+{% block crumbs %}<a href="/">RFQs</a> / <b>{{ rfq.id }}</b>{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ rfq.title }}</h1>
+    <div class="sub"><span class="mono">{{ rfq.id }}</span> &middot; issued {{ rfq.issued_on.strftime('%d %b') }}, closed {{ rfq.closes_on.strftime('%d %b %Y') }} &middot; {{ rfq.lines|length }} lines, {{ deps.buyers|length }} buyers, {{ rfq.emails|length }} supplier quotes</div>
+  </div>
+  <div class="actions">
+    <form method="post" action="/rfq/{{ rfq.id }}/run" onsubmit="this.querySelector('button').classList.add('busy')">
+      <button class="btn primary" type="submit" {% if running %}disabled{% endif %}>
+        <span class="spinner"></span>
+        <svg viewBox="0 0 24 24"><path d="M7 4l12 8-12 8z"/></svg>{% if run %}Run agent again{% else %}Run agent{% endif %}
+      </button>
+    </form>
+  </div>
+</div>
+
+{% include "_live.html" %}
+
+<div class="grid-2" style="margin-top: 16px;">
+  <div class="card" id="emails">
+    <div class="card-head"><h2>Supplier quote emails</h2><span class="hint">raw, as received (synthetic)</span></div>
+    {% for e in rfq.emails %}
+      {% set s = deps.suppliers[e.supplier_id] %}
+      <details class="email">
+        <summary>
+          <div class="avatar">{{ s.name[:2]|upper }}</div>
+          <div style="min-width: 0;">
+            <div class="from">{{ s.name }} <span class="muted small" style="font-weight: 500;">&middot; {{ s.contact_name }}</span></div>
+            <div class="subj">{{ e.subject }}</div>
+          </div>
+          <div class="small faint nowrap"><span class="mono">{{ e.id }}</span> &middot; {{ e.received_at.strftime('%d %b %H:%M') }}</div>
+        </summary>
+        <pre>{{ e.body }}</pre>
+      </details>
+    {% endfor %}
+  </div>
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>Buyers</h2><span class="hint">pooled demand</span></div>
+      <table>
+        {% for b in deps.buyers.values() %}
+        <tr><td><b>{{ b.name }}</b><div class="small muted">{{ b.kind }}</div></td><td class="nowrap"><span class="chip gray">{{ b.country }}</span> <span class="small muted">{{ b.country_name }}</span></td></tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Suppliers who quoted</h2></div>
+      <table>
+        {% for e in rfq.emails %}{% set s = deps.suppliers[e.supplier_id] %}
+        <tr>
+          <td><b>{{ s.name }}</b><div class="small muted">{{ s.kind|capitalize }} &middot; {{ s.completed_orders }} completed orders</div></td>
+          <td class="right-align">
+            {% if not s.in_registry %}<span class="chip red">Not in registry</span>
+            {% elif s.gmp and s.gmp.expires_on < as_of %}<span class="chip red" data-tip="{{ s.gmp.number }} expired {{ s.gmp.expires_on }}">GMP expired</span>
+            {% elif s.completed_orders < 3 %}<span class="chip amber">New</span>
+            {% else %}<span class="chip green">Registry</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

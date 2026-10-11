@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ run.id }}{% endblock %}
+{% block crumbs %}<a href="/runs">Runs</a> / <b class="mono">{{ run.id }}</b>{% endblock %}
+{% block content %}
+{% set rc = {'running': 'blue', 'done': 'green', 'waiting_review': 'amber', 'failed': 'red', 'superseded': 'gray'} %}
+<div class="page-head">
+  <div>
+    <h1>Run <span class="mono" style="font-size: 18px;">{{ run.id }}</span> <span class="chip {{ rc.get(run.status, 'gray') }}" style="vertical-align: 3px;">{{ run.status.replace('_', ' ') }}</span></h1>
+    <div class="sub">{{ run.kind }} run &middot; LLM {{ run.mode }} ({{ run.model }}) &middot; started {{ run.started_at|when }}{% if run.parent_run_id %} &middot; re-check of <a class="mono" href="/runs/{{ run.parent_run_id }}">{{ run.parent_run_id }}</a>{% endif %}</div>
+  </div>
+  <div class="actions"><a class="btn" href="/rfq/{{ run.rfq_id }}">Open RFQ</a></div>
+</div>
+
+<div class="metrics" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+  <div class="card metric"><span>Active time</span><b>{{ run.active_ms|ms }}</b><small>review wait excluded</small></div>
+  <div class="card metric"><span>Model calls</span><b>{{ run.llm_calls }}</b><small>{{ run.model }}</small></div>
+  <div class="card metric"><span>Tokens in / out</span><b>{{ run.input_tokens|num }} / {{ run.output_tokens|num }}</b><small>cache reads not counted</small></div>
+  <div class="card metric"><span>Cost</span><b>${{ '%.4f'|format(run.cost_usd) }}</b><small>API-equivalent, not a bill</small></div>
+  <div class="card metric"><span>Alerts</span><b style="color: {{ 'var(--amber)' if alerts else 'inherit' }};">{{ alerts|length }}</b><small>{% if alerts %}{{ alerts[0].kind.replace('_', ' ') }}{% else %}none{% endif %}</small></div>
+</div>
+
+{% if alerts %}
+<div class="card" style="margin-bottom: 16px;">
+  {% for a in alerts %}
+  <div style="padding: 10px 16px; border-bottom: 1px solid var(--line-soft);" class="small">
+    <span class="chip {{ 'red' if a.severity == 'error' else 'amber' }}">{{ a.kind.replace('_', ' ') }}</span> {{ a.message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-head">
+    <h2>Trace waterfall</h2>
+    <span class="hint">click a span for its model, tokens, cost, tool input and output</span>
+    <div class="right legend">
+      <span><i style="background: #98a2b3;"></i>Node</span><span><i style="background: #7a5af8;"></i>LLM</span><span><i style="background: #12a383;"></i>Tool</span><span><i style="background: #f79009;"></i>Retry</span><span><i style="background: #f04438;"></i>Error</span>
+    </div>
+  </div>
+  {% if not segments %}
+    <div class="empty"><b>No spans yet</b></div>
+  {% endif %}
+  {% for seg in segments %}
+    {% if seg.gap_ms %}<div class="wf-gap">Paused {{ seg.gap_ms|ms }} waiting for a person, then resumed from the LangGraph checkpoint</div>{% endif %}
+    <div class="wf" style="padding: 8px 0;">
+      {% for s in seg.rows %}
+      <details class="span-d">
+        <summary class="wf-row">
+          <div class="wf-name" style="padding-left: {{ s.depth * 18 }}px;">
+            <span class="chip {{ {'node': 'gray', 'llm': 'violet', 'tool': 'green'}[s.kind] }}">{{ s.kind }}</span>
+            <span>{{ s.name }}</span>
+          </div>
+          <div class="wf-track"><div class="wf-bar {{ s.kind }} {{ s.status if s.status in ('error', 'retry', 'waiting') }}" style="left: {{ '%.2f'|format(s.left) }}%; width: {{ '%.2f'|format(s.width) }}%;"></div></div>
+          <div class="small muted right-align nowrap">{{ s.ms|ms }}</div>
+        </summary>
+        <div class="span-attrs">
+          <dl>
+            <dt>status</dt><dd>{{ s.status }}</dd>
+            {% for k, v in s.attrs.items() %}{% if v is not none and v != '' %}<dt>{{ k }}</dt><dd>{{ v }}</dd>{% endif %}{% endfor %}
+          </dl>
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+
+<div class="card" style="margin-top: 16px;">
+  <div class="card-head"><h2>Step log</h2></div>
+  <ol class="tl">
+    {% for s in steps %}
+    <li class="{{ s.status }}"><span class="node"></span><div class="step">{{ s.label }}{% if s.status != 'pending' %}<span class="ms">{{ s.ms|ms }}</span>{% endif %}</div>
+      {% for e in s.events %}<div class="ev {{ e.level }}">{{ e.message }}</div>{% endfor %}</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endblock %}

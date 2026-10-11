@@ -1,0 +1,139 @@
+{% set status_cls = {'awarded': 'green', 'review': 'amber', 'blocked': 'red', 'rejected': 'red', 'acting': 'blue'} %}
+{% set status_txt = {'awarded': 'Awarded', 'review': 'Needs review', 'blocked': 'Blocked', 'rejected': 'Rejected', 'acting': 'Acting alone'} %}
+{% set route_cls = {'act_alone': 'green', 'review': 'amber', 'stop': 'red'} %}
+<div id="live" {% if running %}hx-get="/rfq/{{ rfq.id }}/live?poll=1" hx-trigger="every 1s" hx-swap="outerHTML"{% endif %}>
+<div class="grid-2">
+  <div class="stack" style="min-width: 0;">
+    <div class="card" id="lines">
+      <div class="card-head">
+        <h2>Lines and decisions</h2>
+        <span class="hint">policy routes each line: act alone, ask a person, or stop</span>
+      </div>
+      {% for l in lines %}
+      <div class="line-row">
+        <div>
+          <div class="line-name">{{ l.product.name }} {% if l.product.cold_chain %}<span class="chip blue" data-tip="Needs 2-8 C storage and transport">Cold chain</span>{% endif %}</div>
+          <div class="line-meta">Line {{ l.line.id }} &middot; {{ l.line.total_quantity|num }} {{ l.product.unit }}s pooled &middot; reference ${{ '%.3f'|format(l.product.reference_unit_price_usd) }} per {{ l.product.unit }} (synthetic)</div>
+          <div class="demand">
+            {% for d in l.line.demands %}{% set b = deps.buyers[d.buyer_id] %}
+              <span title="{{ b.name }}, needed by {{ d.needed_by }}"><b>{{ b.country }}</b> {{ d.quantity|num }}</span>
+            {% endfor %}
+          </div>
+          <div class="small muted" style="margin-top: 8px;">Shortlist:
+            {% for e in l.shortlist %}{{ deps.suppliers[e.supplier_id].name }} <span class="faint">({{ e.countries|join(' ') }})</span>{% if not loop.last %}, {% endif %}{% else %}none{% endfor %}
+          </div>
+        </div>
+        <div class="status-col">
+          {% if l.state %}
+            <span class="chip {{ status_cls.get(l.state.status, 'gray') }}"><span class="i"></span>{{ status_txt.get(l.state.status, l.state.status) }}</span>
+            {% if l.state.decision %}<div class="small muted" style="margin-top: 6px;">Gate: <b>{{ l.state.decision.route|route_label }}</b></div>{% endif %}
+            {% if l.plan and l.plan.total_usd %}<div class="small muted">{{ l.plan.total_usd|money }} landed</div>{% endif %}
+          {% else %}
+            <span class="chip gray">Not run</span>
+          {% endif %}
+        </div>
+        {% if l.state and l.state.decision and l.state.decision.rules_fired %}
+        <ul class="rules">
+          {% for h in l.state.decision.rules_fired %}
+          <li><span class="chip {{ route_cls[h.route] }}">{{ h.route|route_label }}</span><code>{{ h.rule }}</code><span class="muted">{{ h.reason }}</span></li>
+          {% endfor %}
+        </ul>
+        {% elif l.state and l.state.decision %}
+        <ul class="rules"><li><span class="chip green">Act alone</span><span class="muted">No rule fired: known supplier, under the value limit, documents valid, price in band</span></li></ul>
+        {% endif %}
+        {% if l.state and l.state.note %}<div class="small" style="grid-column: 1 / -1; color: #344054;">{{ l.state.note }}</div>{% endif %}
+        {% if l.plan and l.plan.allocations %}
+        <table class="split">
+          <tr><th>Buyer</th><th>Supplier</th><th class="num">Units</th><th class="num">Landed / unit</th><th class="num">Total</th></tr>
+          {% for a in l.plan.allocations %}
+          <tr><td>{{ deps.buyers[a.buyer_id].name }} <span class="faint">{{ deps.buyers[a.buyer_id].country }}</span></td><td>{{ deps.suppliers[a.supplier_id].name }}</td><td class="num">{{ a.quantity|num }}</td><td class="num">${{ '%.4f'|format(a.landed_unit_usd) }}</td><td class="num">{{ a.total_usd|money }}</td></tr>
+          {% endfor %}
+        </table>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <div class="card sticky" id="timeline">
+    <div class="card-head">
+      <h2>Run timeline</h2>
+      {% if run %}
+        <div class="right">
+          {% set rc = {'running': 'blue', 'done': 'green', 'waiting_review': 'amber', 'failed': 'red', 'superseded': 'gray'} %}
+          <span class="chip {{ rc.get(run.status, 'gray') }}">{{ run.status.replace('_', ' ') }}</span>
+          <a class="small" href="/runs/{{ run.id }}">trace</a>
+        </div>
+      {% endif %}
+    </div>
+    {% if not run %}
+      <div class="empty">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <b>No run yet</b>Each step streams here: shortlist, read quotes, checks, prices, award plan and the policy gate.
+      </div>
+    {% else %}
+      <div class="small muted" style="padding: 10px 16px 0;">
+        <span class="mono">{{ run.id }}</span> &middot; {{ run.kind }} &middot; {{ run.llm_calls }} model calls &middot; {{ run.active_ms|ms }} active &middot; ${{ '%.3f'|format(run.cost_usd) }} API-equivalent
+      </div>
+      {% if run.error %}<div class="flash err" style="margin: 10px 16px 0;">{{ run.error }}</div>{% endif %}
+      <ol class="tl">
+        {% for s in steps %}
+        <li class="{{ s.status }}">
+          <span class="node"></span>
+          <div class="step">{{ s.label }}{% if s.status != 'pending' %}<span class="ms">{{ s.ms|ms }}</span>{% endif %}</div>
+          {% for e in s.events[-6:] %}<div class="ev {{ e.level }}">{{ e.message }}</div>{% endfor %}
+          {% if s.name == 'review' and s.status == 'waiting' %}<div class="ev"><a href="/reviews">Open the review queue</a></div>{% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+    {% endif %}
+  </div>
+</div>
+<div style="margin-top: 16px;">
+    <div class="card" id="quotes">
+      <div class="card-head">
+        <h2>Quote comparison</h2>
+        <span class="hint">read by the model, checked by code; hover a chip for the check</span>
+      </div>
+      {% if not has_quotes %}
+        <div class="empty">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          <b>No quotes read yet</b>
+          {% if running %}The agent is reading the supplier emails now.{% else %}Click Run agent to read the {{ rfq.emails|length }} supplier emails and check every quote.{% endif %}
+        </div>
+      {% else %}
+      <table>
+        <tr><th>Supplier</th><th>As quoted</th><th class="num">Landed / unit</th><th class="num">MOQ</th><th class="num">Capacity</th><th class="num">Lead</th><th class="num">Shelf life</th><th>Checks</th></tr>
+        {% for l in lines %}
+          <tr><td colspan="8" style="background: #fcfcfd; font-weight: 600; font-size: 12.5px;">{{ l.product.name }}</td></tr>
+          {% for q in l.quotes %}{% set s = deps.suppliers[q.supplier_id] %}
+          <tr class="{{ 'dim' if not q.usable }}">
+            <td><b style="color: var(--text);">{{ s.name }}</b><div class="small faint">{{ q.email_id }} &middot; {{ q.item.product_text[:60] }}</div></td>
+            <td class="nowrap">{% if q.item.price_amount is not none %}{{ q.item.currency }} {{ q.item.price_amount }} / {{ q.item.price_per_quantity|num }}<div class="small faint">{{ q.item.incoterm or 'no Incoterm' }}</div>{% else %}<span class="chip red">No price</span>{% endif %}</td>
+            <td class="num">{% if q.landed_unit_usd is not none %}${{ '%.4f'|format(q.landed_unit_usd) }}<div class="small faint">{{ '%+.0f'|format((q.landed_unit_usd / l.product.reference_unit_price_usd - 1) * 100) }}% vs ref</div>{% else %}-{% endif %}</td>
+            <td class="num">{{ q.item.moq_units|num }}</td>
+            <td class="num">{{ q.item.max_units|num }}</td>
+            <td class="num">{% if q.item.lead_time_days is not none %}{{ q.item.lead_time_days }} d{% else %}-{% endif %}</td>
+            <td class="num">{% if q.item.shelf_life_months is not none %}{{ q.item.shelf_life_months }} mo{% else %}-{% endif %}</td>
+            <td><div class="chips">
+              {% for f in q.flags %}<span class="chip {{ f.severity|flagclass }}" data-tip="{{ f.check }}: {{ f.detail }}">{{ f.label }}</span>{% else %}<span class="chip green">All checks pass</span>{% endfor %}
+            </div></td>
+          </tr>
+          {% endfor %}
+        {% endfor %}
+        {% if unmatched %}
+          <tr><td colspan="8" style="background: #fcfcfd; font-weight: 600; font-size: 12.5px;">Unreadable or not on this RFQ</td></tr>
+          {% for q in unmatched %}{% set s = deps.suppliers[q.supplier_id] %}
+          <tr>
+            <td><b>{{ s.name }}</b><div class="small faint">{{ q.email_id }}</div></td>
+            <td colspan="6"><span class="chip red">Could not read a price</span> <span class="small muted">follow-up sent, no number guessed</span></td>
+            <td><div class="chips">{% for f in q.flags %}<span class="chip {{ f.severity|flagclass }}" data-tip="{{ f.check }}: {{ f.detail }}">{{ f.label }}</span>{% endfor %}</div></td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+      </table>
+      {% endif %}
+    </div>
+</div>
+</div>

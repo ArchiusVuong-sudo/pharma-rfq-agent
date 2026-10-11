@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Halden Medical Supply\nSubject: ORS availability\n\nEmail body:\n<<<\nHi, we have ORS sachets in stock, 100 per carton. Price on request.\nLead time",
   "response": {
-    "cache_read_tokens": 5496,
-    "cost_usd": 0.0081018,
-    "input_tokens": 953,
-    "latency_ms": 5117.7,
+    "cache_read_tokens": 5850,
+    "cost_usd": 0.0070646,
+    "input_tokens": 621,
+    "latency_ms": 5529.4,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -29,19 +29,20 @@
       "supplier_name": "Halden Medical Supply",
       "unreadable_reason": null
     },
-    "output_tokens": 306,
-    "recorded_at": "2026-10-11T03:07:44Z",
+    "output_tokens": 328,
+    "recorded_at": "2026-10-11T03:19:26Z",
     "source": "live",
     "tool_calls": [
       {
         "input": {
+          "limit": 5,
           "query": "ORS sachets"
         },
         "is_error": false,
-        "latency_ms": 0.19,
+        "latency_ms": 0.15,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-ORS-1L-SACHET\", \"name\": \"Oral rehydration salts 1 L sachet\", \"unit\": \"sachet\", \"pack_sizes\": [50, 100], \"cold_chain\": false, \"score\": 100.0}]",
-        "start_ms": 1791688061754.105
+        "start_ms": 1791688763480.203
       }
     ],
     "transport_retries": 0

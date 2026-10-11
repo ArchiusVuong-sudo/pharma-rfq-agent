@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Orrin Distribution\nSubject: Zinc 20 mg quote\n\nEmail body:\n<<<\nHi team, zinc 20mg DT, USD 5.00 per box of 100 tablets, CIP.\nMOQ 10,000 tablets,",
   "response": {
-    "cache_read_tokens": 5538,
-    "cost_usd": 0.008728399999999999,
-    "input_tokens": 1026,
-    "latency_ms": 5149.7,
+    "cache_read_tokens": 5934,
+    "cost_usd": 0.007203599999999999,
+    "input_tokens": 625,
+    "latency_ms": 5124.9,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -30,7 +30,7 @@
       "unreadable_reason": null
     },
     "output_tokens": 338,
-    "recorded_at": "2026-10-11T03:07:39Z",
+    "recorded_at": "2026-10-11T03:19:20Z",
     "source": "live",
     "tool_calls": [
       {
@@ -39,10 +39,10 @@
           "query": "zinc 20mg DT"
         },
         "is_error": false,
-        "latency_ms": 0.19,
+        "latency_ms": 0.23,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-ZINC-20-DT\", \"name\": \"Zinc sulfate 20 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}]",
-        "start_ms": 1791688056704.0068
+        "start_ms": 1791688758213.3188
       }
     ],
     "transport_retries": 0

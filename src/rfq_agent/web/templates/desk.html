@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}RFQs{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>RFQ desk</h1>
+    <div class="sub">Pooled requests for quotation. The agent reads supplier quotes, checks them and awards low-risk lines alone.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h2>Open RFQs</h2><span class="hint">1 pooled RFQ</span></div>
+  <a href="/rfq/{{ rfq.id }}" class="rfq-card" style="color: inherit; text-decoration: none;">
+    <div style="flex: 1; min-width: 0;">
+      <div class="title">{{ rfq.title }}</div>
+      <div class="muted small mono" style="margin-top: 2px;">{{ rfq.id }}</div>
+      <div class="chips" style="margin-top: 10px;">
+        {% for l in lines %}
+          {% set st = l.state.status if l.state else 'open' %}
+          {% set cls = {'awarded': 'green', 'review': 'amber', 'blocked': 'red', 'rejected': 'red', 'acting': 'blue'}.get(st, 'gray') %}
+          <span class="chip {{ cls }}"><span class="i"></span>{{ l.product.inn }}: {{ {'open': 'Open', 'awarded': 'Awarded', 'review': 'Needs review', 'blocked': 'Blocked', 'rejected': 'Rejected', 'acting': 'Acting'}[st] }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="kv">
+      <div><span>Lines</span><b>{{ rfq.lines|length }}</b></div>
+      <div><span>Buyers</span><b>{{ deps.buyers|length }}</b></div>
+      <div><span>Quotes</span><b>{{ rfq.emails|length }}</b></div>
+      <div><span>Closed</span><b>{{ rfq.closes_on.strftime('%d %b') }}</b></div>
+      <div><span>Last run</span><b>{% if run %}{{ run.status.replace('_', ' ') }}{% else %}none yet{% endif %}</b></div>
+    </div>
+    <span class="btn primary">Open</span>
+  </a>
+</div>
+
+<div class="grid-3" style="margin-top: 16px;">
+  <div class="card card-body"><h3>1. The model reads</h3><p class="muted small" style="margin: 6px 0 0;">Claude turns each messy supplier email into a quote record through a catalog tool call and a schema-checked output. Anything it cannot read stays empty and becomes a follow-up.</p></div>
+  <div class="card card-body"><h3>2. Code decides</h3><p class="muted small" style="margin: 6px 0 0;">Registry, GMP, registration, shelf life, lead time and price checks run in code on every quote, then a planner matches each buyer to compliant suppliers by landed cost.</p></div>
+  <div class="card card-body"><h3>3. Policy routes</h3><p class="muted small" style="margin: 6px 0 0;">One policy file decides per line: act alone, ask a person (the run pauses at a checkpoint) or stop, and lists the rules that fired.</p></div>
+</div>
+{% endblock %}

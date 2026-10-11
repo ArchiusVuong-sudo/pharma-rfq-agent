@@ -7,8 +7,9 @@ from collections import defaultdict
 from rfq_agent.models import Buyer, LinePlan, Product, Rfq, RfqLine, Supplier
 
 
-def po_drafts(rfq: Rfq, line: RfqLine, plan: LinePlan, product: Product,
-              suppliers: dict[str, Supplier], buyers: dict[str, Buyer]) -> list[tuple[str, str, str]]:
+def po_drafts(
+    rfq: Rfq, line: RfqLine, plan: LinePlan, product: Product, suppliers: dict[str, Supplier], buyers: dict[str, Buyer]
+) -> list[tuple[str, str, str]]:
     """One PO draft per supplier: (supplier id, subject, body)."""
     by_supplier: dict[str, list[str]] = defaultdict(list)
     totals: dict[str, float] = defaultdict(float)

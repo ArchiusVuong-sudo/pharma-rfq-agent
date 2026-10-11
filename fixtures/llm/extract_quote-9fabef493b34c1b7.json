@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Pinecrest Pharma\nSubject: Misoprostol 200 mcg\n\nEmail body:\n<<<\nHello, misoprostol 200 microgram tablets, USD 11.00 per 100 tablets CIP.\nWe can",
   "response": {
-    "cache_read_tokens": 5553,
-    "cost_usd": 0.0085915,
-    "input_tokens": 1015,
-    "latency_ms": 5522.0,
+    "cache_read_tokens": 5966,
+    "cost_usd": 0.0070461,
+    "input_tokens": 608,
+    "latency_ms": 5160.5,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -30,18 +30,18 @@
       "unreadable_reason": null
     },
     "output_tokens": 328,
-    "recorded_at": "2026-10-11T03:07:34Z",
+    "recorded_at": "2026-10-11T03:19:15Z",
     "source": "live",
     "tool_calls": [
       {
         "input": {
-          "query": "misoprostol 200 mcg tablets"
+          "query": "misoprostol 200 microgram tablets"
         },
         "is_error": false,
-        "latency_ms": 0.42,
+        "latency_ms": 0.15,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-MISO-200-TAB\", \"name\": \"Misoprostol 200 mcg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [28, 100], \"cold_chain\": false, \"score\": 100.0}]",
-        "start_ms": 1791688051294.2842
+        "start_ms": 1791688753089.7998
       }
     ],
     "transport_retries": 0

@@ -3,10 +3,10 @@
   "note": "Recorded from a live Claude Agent SDK run on synthetic data.",
   "prompt_preview": "Supplier on file: Kestrel Generics\nSubject: RE: RFQ-SYN-0107 quotation - zinc and amoxicillin\n\nEmail body:\n<<<\nDear procurement team,\n\nThank you for including u",
   "response": {
-    "cache_read_tokens": 6330,
-    "cost_usd": 0.01113,
-    "input_tokens": 1011,
-    "latency_ms": 6147.3,
+    "cache_read_tokens": 6328,
+    "cost_usd": 0.0111211,
+    "input_tokens": 1009,
+    "latency_ms": 6479.4,
     "model": "claude-sonnet-5-5",
     "output": {
       "items": [
@@ -45,7 +45,7 @@
       "unreadable_reason": null
     },
     "output_tokens": 566,
-    "recorded_at": "2026-10-11T03:07:23Z",
+    "recorded_at": "2026-10-11T03:19:33Z",
     "source": "live",
     "tool_calls": [
       {
@@ -53,20 +53,20 @@
           "query": "Zinc sulfate 20mg dispersible"
         },
         "is_error": false,
-        "latency_ms": 0.21,
+        "latency_ms": 0.16,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-ZINC-20-DT\", \"name\": \"Zinc sulfate 20 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}, {\"product_id\": \"P-AL-20-120-TAB\", \"name\": \"Artemether/lumefantrine 20/120 mg tablet\", \"unit\": \"tablet\", \"pack_sizes\": [24, 360], \"cold_chain\": false, \"score\": 47.6}, {\"product_id\": \"P-AMOX-250-DT\", \"name\": \"Amoxicillin 250 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 46.0}]",
-        "start_ms": 1791688040126.53
+        "start_ms": 1791688769112.288
       },
       {
         "input": {
           "query": "Amoxicillin 250mg dispersible"
         },
         "is_error": false,
-        "latency_ms": 0.16,
+        "latency_ms": 0.14,
         "name": "search_catalog",
         "output": "[{\"product_id\": \"P-AMOX-250-DT\", \"name\": \"Amoxicillin 250 mg dispersible tablet\", \"unit\": \"tablet\", \"pack_sizes\": [100, 1000], \"cold_chain\": false, \"score\": 100.0}]",
-        "start_ms": 1791688040133.204
+        "start_ms": 1791688769116.54
       }
     ],
     "transport_retries": 0

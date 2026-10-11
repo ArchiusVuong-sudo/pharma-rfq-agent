@@ -109,9 +109,7 @@ class LiveProvider:
     def options(self, request: LlmRequest, cwd: str, calls: list[ToolCall]) -> ClaudeAgentOptions:
         mcp_servers: dict[str, Any] = {}
         if request.tools:
-            mcp_servers[MCP_SERVER] = create_sdk_mcp_server(
-                MCP_SERVER, "0.1.0", _sdk_tools(request.tools, calls)
-            )
+            mcp_servers[MCP_SERVER] = create_sdk_mcp_server(MCP_SERVER, "0.1.0", _sdk_tools(request.tools, calls))
         return ClaudeAgentOptions(
             tools=[],  # no built-in Claude Code tools at all
             mcp_servers=mcp_servers,
@@ -196,8 +194,7 @@ class LiveProvider:
         return LlmResponse(
             output=output if isinstance(output, dict) else None,
             model=model,
-            input_tokens=int(usage.get("input_tokens") or 0)
-            + int(usage.get("cache_creation_input_tokens") or 0),
+            input_tokens=int(usage.get("input_tokens") or 0) + int(usage.get("cache_creation_input_tokens") or 0),
             output_tokens=int(usage.get("output_tokens") or 0),
             cache_read_tokens=int(usage.get("cache_read_input_tokens") or 0),
             cost_usd=float(result.total_cost_usd or 0.0),

@@ -122,15 +122,24 @@ class Store:
     def reset(self) -> None:
         with self.tx() as c:
             for table in (
-                "runs", "events", "spans", "alerts", "extractions", "quotes",
-                "line_state", "reviews", "outbox", "eval_runs",
+                "runs",
+                "events",
+                "spans",
+                "alerts",
+                "extractions",
+                "quotes",
+                "line_state",
+                "reviews",
+                "outbox",
+                "eval_runs",
             ):
-                c.execute(f"DELETE FROM {table}")  # noqa: S608 - fixed table names
+                c.execute(f"DELETE FROM {table}")
 
     # ------------------------------------------------------------ runs and timeline
 
-    def create_run(self, run_id: str, rfq_id: str, kind: str, mode: str, model: str,
-                   parent_run_id: str | None = None) -> None:
+    def create_run(
+        self, run_id: str, rfq_id: str, kind: str, mode: str, model: str, parent_run_id: str | None = None
+    ) -> None:
         self.x(
             "INSERT INTO runs (id, rfq_id, kind, status, mode, model, started_at, parent_run_id) "
             "VALUES (?, ?, ?, 'running', ?, ?, ?, ?)",
@@ -141,7 +150,7 @@ class Store:
         if not fields:
             return
         cols = ", ".join(f"{k} = ?" for k in fields)
-        self.x(f"UPDATE runs SET {cols} WHERE id = ?", (*fields.values(), run_id))  # noqa: S608
+        self.x(f"UPDATE runs SET {cols} WHERE id = ?", (*fields.values(), run_id))
 
     def add_run_usage(self, run_id: str, cost: float, tin: int, tout: int) -> None:
         self.x(
@@ -150,18 +159,17 @@ class Store:
             (cost, tin, tout, run_id),
         )
 
-    def event(self, run_id: str, node: str, message: str, level: str = "info",
-              data: Any = None) -> None:
+    def event(self, run_id: str, node: str, message: str, level: str = "info", data: Any = None) -> None:
         self.x(
             "INSERT INTO events (run_id, ts, node, level, message, data) VALUES (?, ?, ?, ?, ?, ?)",
             (run_id, now_iso(), node, level, message, _dumps(data)),
         )
 
-    def alert(self, run_id: str | None, kind: str, message: str, severity: str = "warn",
-              dedupe_key: str | None = None) -> None:
+    def alert(
+        self, run_id: str | None, kind: str, message: str, severity: str = "warn", dedupe_key: str | None = None
+    ) -> None:
         self.x(
-            "INSERT OR IGNORE INTO alerts (run_id, ts, kind, severity, message, dedupe_key) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT OR IGNORE INTO alerts (run_id, ts, kind, severity, message, dedupe_key) VALUES (?, ?, ?, ?, ?, ?)",
             (run_id, now_iso(), kind, severity, message, dedupe_key),
         )
 
@@ -187,11 +195,20 @@ class Store:
                 )
 
     def quotes(self, rfq_id: str) -> list[dict[str, Any]]:
-        return [json.loads(r["data"]) for r in self.q(
-            "SELECT data FROM quotes WHERE rfq_id = ? ORDER BY ref", (rfq_id,))]
+        return [
+            json.loads(r["data"]) for r in self.q("SELECT data FROM quotes WHERE rfq_id = ? ORDER BY ref", (rfq_id,))
+        ]
 
-    def set_line(self, rfq_id: str, line_id: str, status: str, run_id: str | None,
-                 plan: Any = None, decision: Any = None, note: str | None = None) -> None:
+    def set_line(
+        self,
+        rfq_id: str,
+        line_id: str,
+        status: str,
+        run_id: str | None,
+        plan: Any = None,
+        decision: Any = None,
+        note: str | None = None,
+    ) -> None:
         self.x(
             "INSERT OR REPLACE INTO line_state (rfq_id, line_id, status, run_id, plan, decision, note, updated_at) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -239,9 +256,19 @@ class Store:
             "INSERT OR IGNORE INTO outbox (id, run_id, rfq_id, line_id, kind, supplier_id, subject, body, created_at, "
             "drafted_by, guard_notes, reply_email_id, source_email_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
-                msg["id"], msg["run_id"], msg["rfq_id"], msg.get("line_id"), msg["kind"], msg["supplier_id"],
-                msg["subject"], msg["body"], now_iso(), msg["drafted_by"], json.dumps(msg.get("guard_notes", [])),
-                msg.get("reply_email_id"), msg.get("source_email_id"),
+                msg["id"],
+                msg["run_id"],
+                msg["rfq_id"],
+                msg.get("line_id"),
+                msg["kind"],
+                msg["supplier_id"],
+                msg["subject"],
+                msg["body"],
+                now_iso(),
+                msg["drafted_by"],
+                json.dumps(msg.get("guard_notes", [])),
+                msg.get("reply_email_id"),
+                msg.get("source_email_id"),
             ),
         )
 
