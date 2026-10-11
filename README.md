@@ -17,7 +17,7 @@ Full video: https://github.com/ArchiusVuong-sudo/pharma-rfq-agent/releases/downl
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
     Emails["Supplier quote emails (synthetic)"] --> Read
     Demand["Pooled demand from 3 buyers"] --> Short
     UI["Web console (FastAPI, Jinja2, HTMX)"] --> API["API routes"]
