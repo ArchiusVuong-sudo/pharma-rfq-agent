@@ -122,6 +122,6 @@ They cover every check, pricing and its missing-data paths, catalog search, the 
 ## Notes
 
 - All data is synthetic: buyers, suppliers, people, certificates (`SYN-` numbers), prices, reference prices, FX rates and Incoterm uplifts are invented. Policy values are demo settings, not regulatory guidance. Sends are simulated into the outbox.
-- In one live award run on this setup the agent made 8 model calls with about 17 s of active time and about $0.06 API-equivalent cost. Live runs vary; replay numbers in the UI come from the recorded runs.
+- In two live award runs on claude-sonnet-5-5 the agent made 8 model calls each, with 17 s and 20 s of active time and $0.063 and $0.055 API-equivalent cost. Live runs vary; in replay mode the UI shows the recorded tokens and cost.
 - Limits: one RFQ, fixed FX rates, a greedy planner, no attachments (a missing attachment becomes a follow-up), and a single reviewer with no roles.
 - A production version would add: attachment and PDF reading with page-level citations, live FX and freight rates, reviewer roles with four-eyes approval above a second limit, real email and ERP integrations behind an outbox worker with idempotent sends, and online evals on sampled production quotes with drift alerts.
